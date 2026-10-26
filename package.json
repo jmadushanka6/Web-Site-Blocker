@@ -1,0 +1,10 @@
+{
+  "name": "locked-site-blocker",
+  "private": true,
+  "description": "Chrome extension that blocks sites behind a timer lock.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "package": "sh scripts/package.sh"
+  }
+}

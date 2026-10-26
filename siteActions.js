@@ -7,6 +7,7 @@
 // change enforcement, tweak lock rules) without touching the others.
 import {
   normalizeDomain,
+  isBroadSuffix,
   isLocked,
   isValidDuration,
   isValidExtendDuration,
@@ -40,6 +41,9 @@ export async function listSites() {
 export async function addSite(rawInput, durationMs) {
   const domain = normalizeDomain(rawInput);
   if (!domain) return { ok: false, error: "Invalid link. Try something like facebook.com" };
+  if (isBroadSuffix(domain)) {
+    return { ok: false, error: domain + " is a domain ending shared by many sites. Enter a specific site, like bbc.co.uk." };
+  }
   const dur = isValidDuration(durationMs) ? durationMs : DEFAULT_DURATION_MS;
   const list = await getBlocklist();
   const existing = list.find((e) => e.domain === domain);

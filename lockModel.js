@@ -2,8 +2,8 @@
 // Pure, framework-free rules for how a block's commitment timer behaves.
 // Nothing in this file touches chrome.* — Single Responsibility: this
 // module only knows the *rules* of locking, never how entries are stored
-// or enforced. Because it's pure, it can be unit-tested directly (plain
-// `node --check` / a script that imports it) without mocking any chrome API.
+// or enforced. Because it's pure, it's unit-tested directly with Node's
+// built-in test runner (see tests/) without mocking any chrome API.
 
 // Every duration a user can pick when adding a new site, or re-locking one
 // whose timer already ran out.
@@ -41,22 +41,39 @@ export function isLocked(entry, now = Date.now()) {
   return !!entry.lockUntil && entry.lockUntil > now;
 }
 
+// Turns whatever the user typed or pasted ("facebook.com",
+// "https://twitter.com/home", "WWW.Example.org:443/path") into the bare
+// hostname to block, or null if it isn't a website address.
 export function normalizeDomain(input) {
-  if (!input) return null;
-  let s = String(input).trim().toLowerCase();
+  if (input == null) return null;
+  let s = String(input).trim();
   if (!s) return null;
-  // Strip scheme
-  s = s.replace(/^[a-z]+:\/\//, "");
-  // Strip path/query/hash
-  s = s.split("/")[0].split("?")[0].split("#")[0];
-  // Strip credentials and port
-  s = s.split("@").pop();
-  s = s.split(":")[0];
-  // Strip leading "www."
-  s = s.replace(/^www\./, "");
-  // Basic sanity: must contain a dot and valid chars
-  if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(s)) return null;
-  return s;
+  // The URL parser strips scheme, credentials, port, path, query and hash,
+  // lowercases the host, and converts internationalised names to punycode
+  // (münchen.de → xn--mnchen-3ya.de) — the form declarativeNetRequest needs.
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) s = "http://" + s;
+  let host;
+  try {
+    host = new URL(s).hostname;
+  } catch {
+    return null;
+  }
+  host = host.replace(/\.+$/, "").replace(/^www\./, "");
+  // Must look like name.tld: dot-separated labels of letters, digits and
+  // hyphens, ending in an alphabetic or punycode top-level domain. This
+  // rules out IP addresses, localhost and internal pages like
+  // chrome://extensions.
+  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)*\.([a-z]{2,}|xn--[a-z0-9-]+)$/.test(host)) return null;
+  return host;
+}
+
+// True for country "domain endings" such as co.uk, com.au or or.at, which
+// people sometimes type by mistake. Blocking one would block every site
+// registered under it, so addSite refuses them. This is a deliberately
+// simple pattern (a common second-level label under a two-letter country
+// code) rather than the full Public Suffix List.
+export function isBroadSuffix(domain) {
+  return /^(co|com|org|net|ac|edu|gov|gob|go|or|ne|ltd|plc|nic|mil)\.[a-z]{2}$/.test(domain);
 }
 
 // Older entries only had { domain, addedAt }. Give them a lockUntil so the

@@ -1,15 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Site blocked</title>
 <style>
   :root {
+    color-scheme: dark;
     --bg-1: #171a22; --bg-2: #0e0f14;
     --panel: rgba(255,255,255,0.04);
     --border: rgba(255,255,255,0.09);
     --text: #eef0f4; --muted: #9aa0ac;
     --accent: #5b8cff; --accent-2: #8b7bff;
+    --link: #7aa2ff; /* lighter blue for text, for 4.5:1 contrast */
+    --button: #356ae6;
+    --button-hover: #2f63db;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
@@ -49,7 +54,7 @@
   .dom {
     display: inline-block; margin: 2px 0 14px; padding: 4px 12px;
     background: rgba(255,255,255,0.06); border: 1px solid var(--border);
-    border-radius: 100px; color: var(--accent); font-weight: 600; font-size: 13px;
+    border-radius: 100px; color: var(--link); font-weight: 600; font-size: 13px;
     word-break: break-all;
   }
   p.message { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin: 0 0 20px; }
@@ -68,24 +73,34 @@
   .progress .bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 1s linear; }
 
   .hint { margin-top: 16px; font-size: 12px; color: var(--muted); line-height: 1.5; }
-  .hint b { color: var(--text); }
+  .hint:empty { display: none; }
+
+  .go {
+    display: inline-block; margin-top: 18px; padding: 9px 16px; border-radius: 9px;
+    background: var(--button); color: #fff; font-size: 13px; font-weight: 600; text-decoration: none;
+    word-break: break-all;
+  }
+  .go:hover { background: var(--button-hover); }
+  .go:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .go[hidden] { display: none; }
 </style>
 </head>
 <body>
-  <div class="card">
-    <div class="lock-ring" id="ring">🔒</div>
+  <main class="card">
+    <div class="lock-ring" id="ring" aria-hidden="true">🔒</div>
     <h1 id="title">This site is blocked</h1>
     <div class="dom" id="dom"></div>
     <p class="message" id="message">You blocked this to stay focused. It stays blocked, and can't be removed until the timer below runs out.</p>
 
     <div class="status">
       <div class="status-label" id="statusLabel">Removable in</div>
-      <div class="status-time" id="statusTime">—</div>
-      <div class="progress"><div class="bar" id="bar" style="width:0%"></div></div>
+      <div class="status-time" id="statusTime" aria-live="off">—</div>
+      <div class="progress" aria-hidden="true"><div class="bar" id="bar" style="width:0%"></div></div>
     </div>
 
-    <p class="hint">Open the extension to <b>remove</b> or <b>extend</b> this block once it's unlocked.</p>
-  </div>
+    <p class="hint" id="hint">You can make this block longer from the extension at any time. Removing it becomes possible when the timer ends.</p>
+    <a class="go" id="goLink" hidden></a>
+  </main>
   <script src="blocked.js"></script>
 </body>
 </html>

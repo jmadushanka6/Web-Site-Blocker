@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
+    "test:e2e": "node e2e/extension.e2e.cjs",
     "package": "sh scripts/package.sh"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }

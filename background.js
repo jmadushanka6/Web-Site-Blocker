@@ -29,14 +29,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true; // async response
 });
 
-function ensureEnforced() {
-  syncRules();
-  chrome.alarms.create("dailyRefresh", { periodInMinutes: 60 * 24 });
+function resync() {
+  syncRules().catch((e) => console.error("Couldn't sync blocking rules:", e));
 }
 
-chrome.runtime.onInstalled.addListener(ensureEnforced);
-chrome.runtime.onStartup.addListener(ensureEnforced);
-
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "dailyRefresh") syncRules();
-});
+// Dynamic rules already survive browser restarts and extension updates, and
+// they don't depend on time, so there's nothing to refresh on a schedule.
+// Re-syncing on install/update and on startup is just cheap insurance that
+// Chrome's rules match what's in storage.
+chrome.runtime.onInstalled.addListener(resync);
+chrome.runtime.onStartup.addListener(resync);

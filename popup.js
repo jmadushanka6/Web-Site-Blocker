@@ -12,6 +12,7 @@ const listEl = document.getElementById("list");
 const msgEl = document.getElementById("msg");
 const countEl = document.getElementById("count");
 const incognitoEl = document.getElementById("incognito");
+const accessNoticeEl = document.getElementById("accessNotice");
 
 let durationOptions = [];
 let extendOptions = [];
@@ -70,6 +71,8 @@ async function render() {
 
   renderCount(list.length);
   updateIncognitoNotice(list.length);
+  // Restricted site access: those sites fall back to a plain block page.
+  accessNoticeEl.hidden = !list.some((e) => e.siteAccess === false);
 
   const scrollTop = listEl.scrollTop; // keep the user's place in a long list
   listEl.innerHTML = "";

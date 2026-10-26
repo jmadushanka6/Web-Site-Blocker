@@ -132,11 +132,12 @@ export function buildItem(entry, now, options, callbacks) {
 
   li.appendChild(actions);
 
+  // The popup explains restricted site access once, above the list; each
+  // affected row just carries this short marker.
   if (entry.siteAccess === false) {
     const note = document.createElement("p");
     note.className = "note";
-    note.textContent =
-      "Site access is restricted, so this site shows Chrome's plain block page instead of the countdown.";
+    note.textContent = "Shows Chrome's plain block page";
     li.appendChild(note);
   }
 

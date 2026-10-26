@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Locked Site Blocker",
+  "version": "1.2.0",
+  "description": "Block websites and all their subdomains. A site stays blocked and can't be removed until its timer runs out. Extend the timer anytime to 48h, 7 days, or 30 days (never shorter), and re-lock a site again once its timer expires.",
+  "permissions": [
+    "declarativeNetRequest",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Locked Site Blocker",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["blocked.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

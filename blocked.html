@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Site blocked</title>
+<style>
+  :root {
+    --bg-1: #171a22; --bg-2: #0e0f14;
+    --panel: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.09);
+    --text: #eef0f4; --muted: #9aa0ac;
+    --accent: #5b8cff; --accent-2: #8b7bff;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(91,140,255,0.16), transparent 45%),
+      radial-gradient(circle at 80% 85%, rgba(139,123,255,0.14), transparent 45%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    color: var(--text);
+    text-align: center;
+    padding: 24px;
+  }
+  .card {
+    max-width: 420px;
+    width: 100%;
+    padding: 40px 34px 32px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    animation: rise 0.35s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+  .lock-ring {
+    width: 72px; height: 72px; margin: 0 auto 18px;
+    border-radius: 50%;
+    background: linear-gradient(140deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    box-shadow: 0 10px 30px rgba(91,140,255,0.35);
+  }
+  h1 { font-size: 21px; margin: 0 0 6px; letter-spacing: 0.1px; }
+  .dom {
+    display: inline-block; margin: 2px 0 14px; padding: 4px 12px;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    border-radius: 100px; color: var(--accent); font-weight: 600; font-size: 13px;
+    word-break: break-all;
+  }
+  p.message { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin: 0 0 20px; }
+
+  .status {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 6px;
+  }
+  .status-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 8px; }
+  .status-time { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; font-variant-numeric: tabular-nums; }
+  .status-time.ready { color: #34d399; }
+  .progress { height: 5px; background: rgba(255,255,255,0.08); border-radius: 100px; margin-top: 12px; overflow: hidden; }
+  .progress .bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 1s linear; }
+
+  .hint { margin-top: 16px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .hint b { color: var(--text); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="lock-ring" id="ring">🔒</div>
+    <h1 id="title">This site is blocked</h1>
+    <div class="dom" id="dom"></div>
+    <p class="message" id="message">You blocked this to stay focused. It stays blocked, and can't be removed until the timer below runs out.</p>
+
+    <div class="status">
+      <div class="status-label" id="statusLabel">Removable in</div>
+      <div class="status-time" id="statusTime">—</div>
+      <div class="progress"><div class="bar" id="bar" style="width:0%"></div></div>
+    </div>
+
+    <p class="hint">Open the extension to <b>remove</b> or <b>extend</b> this block once it's unlocked.</p>
+  </div>
+  <script src="blocked.js"></script>
+</body>
+</html>

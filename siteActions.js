@@ -19,12 +19,18 @@ import {
   EXTEND_OPTIONS,
 } from "./lockModel.js";
 import { getBlocklist, setBlocklist } from "./storage.js";
-import { syncRules } from "./rules.js";
+import { syncRules, hasSiteAccess } from "./rules.js";
+import { reloadTabsOn } from "./tabs.js";
 
 export async function listSites() {
+  const list = await getBlocklist();
+  const access = await Promise.all(list.map((e) => hasSiteAccess(e.domain)));
   return {
     ok: true,
-    list: await getBlocklist(),
+    // siteAccess is for display only and never stored: false means the
+    // user has restricted the extension's access to that site, so it's
+    // enforced with Chrome's plain block page instead of the countdown page.
+    list: list.map((e, i) => ({ ...e, siteAccess: access[i] })),
     durations: DURATION_OPTIONS,
     extendOptions: EXTEND_OPTIONS,
     defaultDurationMs: DEFAULT_DURATION_MS,
@@ -48,6 +54,10 @@ export async function addSite(rawInput, durationMs) {
   }
   await setBlocklist(list);
   await syncRules();
+  // A site that's new to the list may be open in tabs right now; reload
+  // them so the block shows immediately. (A re-locked site was never
+  // unblocked, so its tabs are already on the blocked page.)
+  if (!existing) await reloadTabsOn(domain);
   return { ok: true };
 }
 

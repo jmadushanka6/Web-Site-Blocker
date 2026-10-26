@@ -39,3 +39,10 @@ function resync() {
 // Chrome's rules match what's in storage.
 chrome.runtime.onInstalled.addListener(resync);
 chrome.runtime.onStartup.addListener(resync);
+
+// Users can narrow or widen the extension's site access from Chrome's puzzle
+// menu at any time. Redirect rules depend on that access, so rebuild the
+// rules whenever it changes — rules.js falls back to a plain block for any
+// site the extension can no longer redirect.
+chrome.permissions.onAdded.addListener(resync);
+chrome.permissions.onRemoved.addListener(resync);

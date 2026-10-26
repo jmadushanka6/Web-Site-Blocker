@@ -8,7 +8,8 @@ order the dashboard asks for it. Text in `[brackets]` is yours to fill in.
 - [ ] Developer account registered (one-time US$5 fee).
 - [ ] 2-Step Verification turned on for that Google account — required before you can publish.
 - [ ] Trader / non-trader status declared on the account page (EU consumer rules). Traders' verified contact details are shown to users.
-- [ ] Privacy policy hosted at a public URL (see section 3).
+- [ ] This branch merged into `main`, so the privacy policy is live at its public URL (see section 3).
+- [ ] Contact line in `PRIVACY.md` filled in.
 - [ ] Package built: `npm run package` → `dist/locked-site-blocker-1.3.0.zip`.
 
 ## 1. Package
@@ -76,10 +77,10 @@ after those that have one): `store/promo-tile-440x280.png`.
 **Marquee promo tile** (1400×560): optional, only needed to be considered for
 featuring.
 
-**Homepage URL:** [the repo URL, once it's on GitHub]
+**Homepage URL:** https://github.com/jmadushanka6/Web-Site-Blocker
 
-**Support URL:** [a web page, e.g. the repo's Issues page — this field must be a
-URL, there's a separate field for a support email]
+**Support URL:** https://github.com/jmadushanka6/Web-Site-Blocker/issues (this
+field must be a web page; there's a separate field for a support email)
 
 ## 3. Privacy practices tab
 
@@ -104,9 +105,10 @@ transferring user data to third parties outside the approved use cases; no use
 or transfer for purposes unrelated to the single purpose; no use or transfer to
 determine creditworthiness or for lending).
 
-**Privacy policy URL:** host `PRIVACY.md` and link to it, for example
-`https://github.com/[you]/locked-site-blocker/blob/main/PRIVACY.md` once the
-repo is public, or a GitHub Pages page. Fill in the contact line first.
+**Privacy policy URL:** https://github.com/jmadushanka6/Web-Site-Blocker/blob/main/PRIVACY.md
+
+The repo is public, so this link works for reviewers and users as soon as this
+branch is merged into `main`. Fill in the contact line in `PRIVACY.md` first.
 
 The dashboard answers, the privacy policy and what the code does must match.
 If you change what the extension stores or which permissions it uses, update

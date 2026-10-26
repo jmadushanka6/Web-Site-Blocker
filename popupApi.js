@@ -3,22 +3,27 @@
 // else in the popup calls chrome.runtime directly, so the messaging
 // contract only has to be understood in one place.
 //
-// If background.js was just edited on disk (e.g. during development) but
-// the extension hasn't been reloaded from chrome://extensions yet, Chrome
-// keeps running the OLD service worker — so messages can come back
-// unrecognized or not at all. Surface that clearly instead of failing
-// silently or throwing when code does `r.ok`.
+// The background worker wakes up on demand, so a failed or empty reply is
+// rare in normal use (it can happen for a moment while Chrome updates the
+// extension). Show users something they can act on, and keep the
+// developer-oriented hint in the console: during development, Chrome keeps
+// running the OLD service worker until the extension is reloaded from
+// chrome://extensions, so messages can come back unrecognized or not at all.
+const RETRY_HINT = "Close this popup and open it again.";
+
 function send(msg) {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(msg, (response) => {
       if (chrome.runtime.lastError) {
-        resolve({
-          ok: false,
-          error: "Can't reach the extension's background worker — reload the extension from chrome://extensions and try again.",
-        });
+        console.warn(
+          "Background worker unreachable:",
+          chrome.runtime.lastError.message,
+          "— if you just edited the files, reload the extension from chrome://extensions."
+        );
+        resolve({ ok: false, error: "Couldn't reach the extension. " + RETRY_HINT });
         return;
       }
-      resolve(response || { ok: false, error: "No response from the extension — try reloading it from chrome://extensions." });
+      resolve(response || { ok: false, error: "The extension didn't respond. " + RETRY_HINT });
     });
   });
 }

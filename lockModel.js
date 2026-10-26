@@ -88,6 +88,7 @@ export function isValidExtension(entry, durationMs, now = Date.now()) {
 }
 
 export function formatRemaining(ms) {
+  if (!(ms > 0)) return "0m";
   const totalMin = Math.ceil(ms / 60000);
   const d = Math.floor(totalMin / 1440);
   const h = Math.floor((totalMin % 1440) / 60);

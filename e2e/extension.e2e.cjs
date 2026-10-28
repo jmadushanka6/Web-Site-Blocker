@@ -5,18 +5,24 @@
 //   npx playwright install chromium
 //   npm run test:e2e               # or: node e2e/extension.e2e.cjs [section...]
 //
-// Sections: popup, blocked, parsing, fallback (default: all of them).
-// Set HEADED=1 to watch the browser. Takes about two minutes, mostly
-// waiting for real timers (the popup's 15-second refresh, a lock expiring).
+// Sections: popup, blocked, parsing, fallback, quickblock, offnotice
+// (default: all of them). Set HEADED=1 to watch the browser. Takes about
+// three minutes, mostly waiting for real timers (the popup's 15-second
+// refresh, a lock expiring, the switched-off check's grace period).
 // No network access is needed: blocked sites are redirected before any
-// request leaves the browser.
+// request leaves the browser, and the one site that has to load first
+// (in "quickblock") is served by this script on 127.0.0.1.
 const { chromium } = require("playwright");
 const fs = require("fs");
+const http = require("http");
 const os = require("os");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const DAY = 24 * 60 * 60 * 1000;
+// How long offTracker.js waits before deciding a wiped session means the
+// extension was switched off (its GRACE_MS).
+const OFF_CHECK_GRACE = 5000;
 const sections = process.argv.slice(2);
 const want = (s) => sections.length === 0 || sections.includes(s);
 const tempDirs = [];
@@ -59,11 +65,13 @@ function buildExtension({ restricted = false } = {}) {
   return dir;
 }
 
-async function launch(extDir) {
-  const context = await chromium.launchPersistentContext(tempDir("lsb-profile-"), {
+// `profile` reuses a browser profile (to restart the browser); `args` are
+// extra command-line switches.
+async function launch(extDir, { profile = tempDir("lsb-profile-"), args = [] } = {}) {
+  const context = await chromium.launchPersistentContext(profile, {
     channel: "chromium",
     headless: !process.env.HEADED,
-    args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`],
+    args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`, ...args],
   });
   let [sw] = context.serviceWorkers();
   if (!sw) sw = await context.waitForEvent("serviceworker");
@@ -95,6 +103,51 @@ async function addSite(popup, value, durationMs) {
 
 const storage = (sw) => sw.evaluate(() => chrome.storage.local.get("blocklist").then((r) => r.blocklist || []));
 const rules = (sw) => sw.evaluate(() => chrome.declarativeNetRequest.getDynamicRules());
+
+// Polls `fn` until it returns something truthy, or gives up after `ms`.
+async function eventually(fn, ms = 5000) {
+  const end = Date.now() + ms;
+  for (;;) {
+    const value = await fn();
+    if (value || Date.now() > end) return value;
+    await sleep(200);
+  }
+}
+
+// The popup as it is when the toolbar icon is clicked over the current tab:
+// it's opened in a background tab, so the tab that was in front stays the
+// active one (that's the tab its one-click button offers to block). Brought
+// to the front once it has set itself up — the last thing it does is fill
+// in the shortcut tip — because hidden tabs don't run animation frames,
+// which Playwright's clicks wait for.
+async function openPopupOver(context, sw, id, errors) {
+  const opened = context.waitForEvent("page");
+  await sw.evaluate((url) => chrome.tabs.create({ url, active: false }), `chrome-extension://${id}/popup.html`);
+  const popup = await opened;
+  popup.on("pageerror", (e) => errors.push("popup: " + e.message));
+  popup.on("console", (m) => { if (m.type() === "error") errors.push("popup console: " + m.text()); });
+  await popup.waitForFunction(() => /Alt\+Shift\+L/.test(document.querySelector("#tip").textContent), null, { polling: 100 });
+  await popup.bringToFront();
+  return popup;
+}
+
+// Serves one plain page for any *.test host (see LOCAL_SITE_ARGS), so a site
+// can be open in a tab before it's blocked.
+function startSiteServer() {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      res.end("<!doctype html><title>Some site</title><h1>Some site</h1>");
+    });
+    server.listen(0, "127.0.0.1", () => resolve(server));
+  });
+}
+
+const LOCAL_SITE_ARGS = [
+  "--host-resolver-rules=MAP *.test 127.0.0.1",
+  "--no-proxy-server",
+  "--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable",
+];
 
 async function popupSection() {
   console.log("\n== popup");
@@ -258,12 +311,151 @@ async function fallbackSection() {
   await context.close();
 }
 
+async function quickBlockSection() {
+  console.log("\n== block the site you're on");
+  const server = await startSiteServer();
+  const site = (host, p = "/") => `http://${host}:${server.address().port}${p}`;
+  try {
+    const { context, sw, id, errors } = await launch(buildExtension(), { args: LOCAL_SITE_ARGS });
+
+    // The native right-click menu and browser shortcuts can't be driven
+    // from here, so check they're registered; what they run (blockTab) is
+    // what the popup's button runs, tested below.
+    const menuItem = (itemId) =>
+      sw.evaluate((i) => new Promise((r) => chrome.contextMenus.update(i, {}, () => r(!chrome.runtime.lastError))), itemId);
+    check("right-click menu on web pages", await eventually(() => menuItem("block-page::24h")));
+    check("right-click menu on the toolbar icon", await menuItem("block-action::30d"));
+    const cmd = (await sw.evaluate(() => chrome.commands.getAll())).find((c) => c.name === "block-current-site");
+    check("Alt+Shift+L shortcut registered", !!cmd && cmd.shortcut === "Alt+Shift+L", JSON.stringify(cmd));
+
+    const page = await context.newPage();
+    await page.goto(site("quick.test", "/feed"));
+    check("test site loads", (await page.title()) === "Some site");
+
+    const popup = await openPopupOver(context, sw, id, errors);
+    const quick = popup.locator("#quickAdd .quick-add");
+    check("one-click button offers the tab's site", (await quick.count()) === 1 && (await quick.textContent()).includes("quick.test"));
+    check("button shows the default lock length", (await quick.locator(".qa-dur").textContent()) === "24 hours");
+    check("shortcut tip names the shortcut", (await popup.textContent("#tip")).includes("Alt+Shift+L"));
+    await popup.selectOption("#addDur", String(2 * DAY));
+    check("button follows the lock-length dropdown", (await quick.locator(".qa-dur").textContent()) === "48 hours");
+
+    await quick.click();
+    const moved = await page.waitForURL(/blocked\.html\?d=quick\.test/, { timeout: 5000 }).then(() => true, () => false);
+    check("the tab switches to the blocked page straight away", moved, page.url());
+    await popup.waitForFunction(() => document.querySelector("#msg").classList.contains("show"));
+    check("popup confirms", (await popup.textContent("#msg")).trim() === "quick.test blocked.");
+    check("button goes away once blocked", await popup.isHidden("#quickAdd"));
+    const entry = (await storage(sw)).find((e) => e.domain === "quick.test");
+    check("blocked for the chosen 48 hours", !!entry && entry.lockUntil - entry.addedAt === 2 * DAY, JSON.stringify(entry));
+    check("listed in the popup", (await popup.locator("li.item .dom", { hasText: "quick.test" }).count()) === 1);
+    await popup.close();
+
+    // No button over the blocked page itself...
+    await page.bringToFront();
+    const overBlocked = await openPopupOver(context, sw, id, errors);
+    check("no button over the blocked page", await overBlocked.isHidden("#quickAdd"));
+    await overBlocked.close();
+
+    // ...nor over a page that isn't a website, and asking anyway is refused.
+    const blank = await context.newPage();
+    await blank.goto("about:blank");
+    const blankTabId = await sw.evaluate(async () => (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0].id);
+    const overBlank = await openPopupOver(context, sw, id, errors);
+    check("no button over a page that isn't a website", await overBlank.isHidden("#quickAdd"));
+    const refused = await overBlank.evaluate((tabId) => chrome.runtime.sendMessage({ type: "blockTab", tabId }), blankTabId);
+    check("blocking a non-website is refused", refused && refused.ok === false && /isn't a website/.test(refused.error), JSON.stringify(refused));
+
+    // A site a lock already covers (here through its parent domain) isn't
+    // added again; blockTab only reloads the tab so the existing block shows.
+    // The lock is stored without syncing the rules, so the tab can still
+    // open the site first, as a tab opened before the block would have.
+    await sw.evaluate(async () => {
+      const { blocklist } = await chrome.storage.local.get("blocklist");
+      const now = Date.now();
+      blocklist.push({ domain: "parent.test", addedAt: now, lockUntil: now + 86400000 });
+      await chrome.storage.local.set({ blocklist });
+    });
+    const sub = await context.newPage();
+    await sub.goto(site("www.sub.parent.test"));
+    const covered = await overBlank.evaluate(async () => {
+      const [tab] = await chrome.tabs.query({ url: "*://*.parent.test/*" });
+      return chrome.runtime.sendMessage({ type: "blockTab", tabId: tab.id });
+    });
+    check("an already-covered site is recognised", covered && covered.ok && covered.alreadyBlocked && covered.domain === "parent.test", JSON.stringify(covered));
+    check("…and not added twice", (await storage(sw)).filter((e) => e.domain.endsWith("parent.test")).length === 1);
+
+    check("no page errors", errors.length === 0, errors.join(" | "));
+    await context.close();
+  } finally {
+    server.close();
+  }
+}
+
+async function offNoticeSection() {
+  console.log("\n== switched-off notice");
+  const extDir = buildExtension();
+  const profile = tempDir("lsb-profile-");
+  let { context, id, errors } = await launch(extDir, { profile });
+  await sleep(OFF_CHECK_GRACE + 1500); // let the start-up check finish
+
+  let popup = await openPopup(context, id, errors);
+  check("no notice after a fresh install", (await popup.locator(".off-notice").count()) === 0);
+  const badge = () => popup.evaluate(() => chrome.action.getBadgeText({}));
+  check("no badge after a fresh install", (await badge()) === "");
+  await popup.close();
+
+  // Switch it off and on again from chrome://extensions, like a user would.
+  const ext = await context.newPage();
+  await ext.goto("chrome://extensions");
+  const toggle = ext.locator(`extensions-item#${id} #enableToggle`);
+  const isOn = () => toggle.evaluate((e) => e.checked);
+  await toggle.click();
+  check("switched off", await eventually(async () => !(await isOn())));
+  await sleep(2000);
+  await toggle.click();
+  check("switched back on", await eventually(isOn));
+  await sleep(1000); // give Chrome a moment to load it again
+
+  // Opening the popup wakes the extension; the notice appears once its
+  // check has run (within the grace period), without reopening the popup.
+  popup = await openPopup(context, id, errors);
+  const shown = await popup.waitForSelector(".off-notice", { timeout: OFF_CHECK_GRACE + 10000 }).then(() => true, () => false);
+  check("notice appears at the top of the popup", shown && (await popup.evaluate(() => document.body.firstElementChild.id)) === "offNotice");
+  if (shown) {
+    check("notice title", (await popup.textContent(".off-notice .on-title")) === "The blocker was switched off");
+    const body = await popup.textContent(".off-notice .on-body");
+    check("notice says when and for how long", /^It was off (around|from about) .+ today \(less than a minute\), so your blocked sites could be opened during that time\.$/.test(body), body);
+    check("toolbar badge shows !", await eventually(async () => (await badge()) === "!"));
+    await popup.click(".off-notice .on-dismiss");
+    check("Got it hides the notice", await eventually(async () => (await popup.locator(".off-notice").count()) === 0));
+    check("…and clears the badge", await eventually(async () => (await badge()) === ""));
+  }
+  const log = await popup.evaluate(() => chrome.storage.local.get("offLog").then((r) => r.offLog || []));
+  check("one switched-off period logged, marked seen", log.length === 1 && log[0].seen === true && log[0].onAt > log[0].offAt, JSON.stringify(log));
+  check("no page errors", errors.length === 0, errors.join(" | "));
+  await context.close();
+
+  // Restarting the browser also starts a fresh session, but isn't reported.
+  ({ context, id, errors } = await launch(extDir, { profile }));
+  await sleep(OFF_CHECK_GRACE + 1500);
+  popup = await openPopup(context, id, errors);
+  await sleep(500);
+  check("no notice after a browser restart", (await popup.locator(".off-notice").count()) === 0);
+  const log2 = await popup.evaluate(() => chrome.storage.local.get("offLog").then((r) => r.offLog || []));
+  check("nothing new logged by the restart", log2.length === 1, JSON.stringify(log2));
+  check("no page errors after the restart", errors.length === 0, errors.join(" | "));
+  await context.close();
+}
+
 (async () => {
   try {
     if (want("popup")) await popupSection();
     if (want("blocked")) await blockedSection();
     if (want("parsing")) await parsingSection();
     if (want("fallback")) await fallbackSection();
+    if (want("quickblock")) await quickBlockSection();
+    if (want("offnotice")) await offNoticeSection();
   } finally {
     for (const dir of tempDirs) fs.rmSync(dir, { recursive: true, force: true });
   }

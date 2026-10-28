@@ -54,7 +54,7 @@ Your list lives in local extension storage — nothing leaves your machine. See 
 ## Development
 
 - **Unit tests:** `npm test` (Node 18 or later, no dependencies to install).
-- **End-to-end tests:** `npm install`, then `npx playwright install chromium` once, then `npm run test:e2e`. They load the extension into Chromium and exercise blocking, the popup, the blocked page and the restricted-site-access fallback. They take about two minutes because they wait for real timers; set `HEADED=1` to watch.
+- **End-to-end tests:** `npm install`, then `npx playwright install chromium` once, then `npm run test:e2e`. They load the extension into Chromium and exercise blocking, the popup, the blocked page, the restricted-site-access fallback, the one-click block of the current site, and the switched-off notice (switching the extension off and on in `chrome://extensions`, then restarting the browser). They take about three minutes because they wait for real timers; set `HEADED=1` to watch. To run some of them, name the sections: `node e2e/extension.e2e.cjs quickblock offnotice`. The right-click menu and the keyboard shortcut belong to the browser itself, so the tests only check that they're registered.
 - **Reloading:** after editing files, reload the extension from `chrome://extensions`. Chrome keeps running the old service worker until you do.
 - **Icons:** `python3 scripts/make-icons.py` redraws `icons/` (needs Pillow).
 - **Packaging:** `npm run package` builds `dist/locked-site-blocker-<version>.zip` with only the files the extension needs. It uses the `zip` command; on Windows, zip `manifest.json`, the `.html` and `.js` files and the `icons` folder yourself.

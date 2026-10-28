@@ -7,6 +7,7 @@
 // change enforcement, tweak lock rules) without touching the others.
 import {
   normalizeDomain,
+  isBroadSuffix,
   isLocked,
   isValidDuration,
   isValidExtendDuration,
@@ -19,12 +20,18 @@ import {
   EXTEND_OPTIONS,
 } from "./lockModel.js";
 import { getBlocklist, setBlocklist } from "./storage.js";
-import { syncRules } from "./rules.js";
+import { syncRules, hasSiteAccess } from "./rules.js";
+import { reloadTabsOn } from "./tabs.js";
 
 export async function listSites() {
+  const list = await getBlocklist();
+  const access = await Promise.all(list.map((e) => hasSiteAccess(e.domain)));
   return {
     ok: true,
-    list: await getBlocklist(),
+    // siteAccess is for display only and never stored: false means the
+    // user has restricted the extension's access to that site, so it's
+    // enforced with Chrome's plain block page instead of the countdown page.
+    list: list.map((e, i) => ({ ...e, siteAccess: access[i] })),
     durations: DURATION_OPTIONS,
     extendOptions: EXTEND_OPTIONS,
     defaultDurationMs: DEFAULT_DURATION_MS,
@@ -34,6 +41,9 @@ export async function listSites() {
 export async function addSite(rawInput, durationMs) {
   const domain = normalizeDomain(rawInput);
   if (!domain) return { ok: false, error: "Invalid link. Try something like facebook.com" };
+  if (isBroadSuffix(domain)) {
+    return { ok: false, error: domain + " is a domain ending shared by many sites. Enter a specific site, like bbc.co.uk." };
+  }
   const dur = isValidDuration(durationMs) ? durationMs : DEFAULT_DURATION_MS;
   const list = await getBlocklist();
   const existing = list.find((e) => e.domain === domain);
@@ -48,6 +58,10 @@ export async function addSite(rawInput, durationMs) {
   }
   await setBlocklist(list);
   await syncRules();
+  // A site that's new to the list may be open in tabs right now; reload
+  // them so the block shows immediately. (A re-locked site was never
+  // unblocked, so its tabs are already on the blocked page.)
+  if (!existing) await reloadTabsOn(domain);
   return { ok: true };
 }
 

@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
+<title>Locked Site Blocker</title>
 <style>
   :root {
-    color-scheme: light dark;
+    /* The design is dark-only; telling Chrome so keeps native parts such as
+       dropdown menus and scrollbars dark too, whatever the system theme. */
+    color-scheme: dark;
     --bg: #14161c;
     --panel: #1d212b;
     --panel-2: #262b37;
@@ -13,6 +16,9 @@
     --muted: #939bab;
     --accent: #5b8cff;
     --accent-2: #7aa2ff;
+    /* Deeper blue behind white text, for at least 4.5:1 contrast. */
+    --accent-strong: #356ae6;
+    --accent-strong-hover: #2f63db;
     --good: #34d399;
     --bad: #ff7a7a;
     --warn: #f5b545;
@@ -25,6 +31,10 @@
     background: linear-gradient(180deg, #171a22, #12141a);
     color: var(--text);
     padding: 16px;
+  }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
   header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
   .logo {
@@ -48,6 +58,7 @@
     background: var(--panel-2); color: var(--text); font-size: 13px; outline: none;
     transition: border-color 0.15s ease;
   }
+  input[type="text"]::placeholder { color: var(--muted); }
   input[type="text"]:focus { border-color: var(--accent); }
   .add-row2 { display: flex; gap: 6px; margin-top: 8px; }
   select {
@@ -57,12 +68,13 @@
   }
   select:focus { border-color: var(--accent); }
   button { font-family: inherit; }
+  button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
   .btn-primary {
-    padding: 8px 14px; border: none; border-radius: 8px; background: var(--accent);
+    padding: 8px 14px; border: none; border-radius: 8px; background: var(--accent-strong);
     color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
     transition: background 0.15s ease, transform 0.05s ease;
   }
-  .btn-primary:hover { background: var(--accent-2); }
+  .btn-primary:hover { background: var(--accent-strong-hover); }
   .btn-primary:active { transform: scale(0.97); }
 
   #msg {
@@ -73,6 +85,26 @@
   #msg.show { max-height: 30px; opacity: 1; margin: 9px 2px 0; }
   #msg.err { color: var(--bad); }
   #msg.ok { color: var(--good); }
+
+  .notice {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 10px; padding: 7px 8px 7px 10px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    font-size: 11.5px; color: #c3c9d6;
+  }
+  .notice[hidden] { display: none; }
+  .notice span { flex: 1; line-height: 1.4; }
+  .notice.warn { border-color: rgba(245, 181, 69, 0.35); }
+  .btn-link {
+    border: none; background: none; padding: 3px 4px; border-radius: 5px;
+    color: var(--accent-2); font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .btn-link:hover { text-decoration: underline; }
+  .btn-dismiss {
+    border: none; background: none; padding: 1px 5px; border-radius: 5px;
+    color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer;
+  }
+  .btn-dismiss:hover { color: var(--text); }
 
   .list-head {
     display: flex; align-items: baseline; justify-content: space-between;
@@ -121,11 +153,12 @@
     cursor: pointer; white-space: nowrap; transition: background 0.15s ease;
   }
   li.item.active .btn-action { background: rgba(91, 140, 255, 0.18); color: var(--accent-2); }
-  li.item.active .btn-action:hover { background: rgba(91, 140, 255, 0.3); }
+  li.item.active .btn-action:hover { background: rgba(91, 140, 255, 0.26); color: #8fb0ff; }
   li.item.expired .btn-action { background: rgba(52, 211, 153, 0.18); color: var(--good); }
-  li.item.expired .btn-action:hover { background: rgba(52, 211, 153, 0.3); }
+  li.item.expired .btn-action:hover { background: rgba(52, 211, 153, 0.26); }
 
   .maxed { font-size: 10.5px; color: var(--muted); flex: 1; }
+  .note { margin: 7px 0 0; font-size: 10.5px; line-height: 1.4; color: var(--muted); }
 
   .btn-remove {
     border: none; background: transparent; color: var(--bad); cursor: pointer;
@@ -140,12 +173,12 @@
   }
 
   footer { margin-top: 12px; text-align: center; }
-  footer p { font-size: 10px; color: #5b6272; margin: 0; }
+  footer p { font-size: 10px; color: var(--muted); margin: 0; }
 </style>
 </head>
 <body>
   <header>
-    <div class="logo">🔒</div>
+    <div class="logo" aria-hidden="true">🔒</div>
     <div>
       <h1>Locked Site Blocker</h1>
       <p class="sub">Blocks a site + all subdomains until its timer runs out.</p>
@@ -153,19 +186,31 @@
   </header>
 
   <div class="add-card">
-    <input id="url" type="text" placeholder="e.g. facebook.com" autofocus>
+    <label for="url" class="sr-only">Site to block</label>
+    <input id="url" type="text" placeholder="e.g. facebook.com" autocomplete="off" spellcheck="false" autofocus>
     <div class="add-row2">
+      <label for="addDur" class="sr-only">Lock length</label>
       <select id="addDur"></select>
       <button class="btn-primary" id="addBtn">Block</button>
     </div>
   </div>
-  <div id="msg"></div>
+  <div id="msg" role="status" aria-live="polite"></div>
+
+  <div class="notice" id="incognito" hidden>
+    <span>Blocks don't apply in Incognito windows.</span>
+    <button class="btn-link" id="incognitoOpen">Allow in Incognito</button>
+    <button class="btn-dismiss" id="incognitoDismiss" aria-label="Dismiss this notice">×</button>
+  </div>
+
+  <div class="notice warn" id="accessNotice" hidden>
+    <span>Site access is limited, so marked sites show Chrome's plain block page. To see the countdown, allow the extension on all sites from Chrome's puzzle menu.</span>
+  </div>
 
   <div class="list-head">
-    <h2>Blocked sites</h2>
+    <h2 id="listTitle">Blocked sites</h2>
     <span id="count"></span>
   </div>
-  <ul id="list"></ul>
+  <ul id="list" aria-labelledby="listTitle"></ul>
 
   <footer>
     <p>Extending only ever adds time — never removes it.</p>

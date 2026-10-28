@@ -11,10 +11,15 @@ const addBtn = document.getElementById("addBtn");
 const listEl = document.getElementById("list");
 const msgEl = document.getElementById("msg");
 const countEl = document.getElementById("count");
+const incognitoEl = document.getElementById("incognito");
+const accessNoticeEl = document.getElementById("accessNotice");
 
 let durationOptions = [];
 let extendOptions = [];
 let msgTimer = null;
+let rows = []; // one { el, refresh(now) } per site currently on screen
+let renderSeq = 0; // only the newest render() is allowed to touch the DOM
+let incognitoBlocked = false; // true when blocks don't reach Incognito windows
 
 function showMsg(text, kind) {
   clearTimeout(msgTimer);
@@ -45,11 +50,16 @@ async function handleRemove(domain) {
   else showMsg(r.error, "err");
 }
 
+// Full rebuild of the list. Used on open and after every change; the
+// 15-second countdown tick below updates rows in place instead.
 async function render() {
+  const seq = ++renderSeq;
   const res = await api.list();
+  if (seq !== renderSeq) return; // a newer render is already on its way
   if (!res.ok) { showMsg(res.error || "Something went wrong.", "err"); return; }
   durationOptions = res.durations || durationOptions;
   extendOptions = res.extendOptions || extendOptions;
+  if (!addDur.options.length) populateSelect(addDur, durationOptions);
 
   const now = Date.now();
   const list = (res.list || []).slice().sort((a, b) => {
@@ -60,7 +70,13 @@ async function render() {
   });
 
   renderCount(list.length);
+  updateIncognitoNotice(list.length);
+  // Restricted site access: those sites fall back to a plain block page.
+  accessNoticeEl.hidden = !list.some((e) => e.siteAccess === false);
+
+  const scrollTop = listEl.scrollTop; // keep the user's place in a long list
   listEl.innerHTML = "";
+  rows = [];
 
   if (list.length === 0) {
     listEl.appendChild(buildEmptyState());
@@ -70,8 +86,19 @@ async function render() {
   const opts = { durationOptions, extendOptions };
   const callbacks = { onExtend: handleExtend, onRelock: handleRelock, onRemove: handleRemove };
   for (const entry of list) {
-    listEl.appendChild(buildItem(entry, now, opts, callbacks));
+    const row = buildItem(entry, now, opts, callbacks);
+    rows.push(row);
+    listEl.appendChild(row.el);
   }
+  listEl.scrollTop = scrollTop;
+}
+
+// Countdown tick: update rows in place, so a duration the user has picked
+// in a dropdown and the list's scroll position both survive. Rebuild only
+// when a row can't be updated in place (a lock just ran out).
+function tick() {
+  const now = Date.now();
+  if (rows.some((row) => !row.refresh(now))) render();
 }
 
 async function add() {
@@ -84,18 +111,50 @@ async function add() {
   urlInput.focus();
 }
 
+// Chrome doesn't run extensions in Incognito windows unless the user allows
+// it, so blocks don't apply there by default. Say so (once there's something
+// blocked), with a shortcut to the switch and a way to dismiss the notice.
+const INCOGNITO_DISMISSED_KEY = "incognitoNoticeDismissed";
+
+function incognitoDismissed() {
+  try {
+    return localStorage.getItem(INCOGNITO_DISMISSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function updateIncognitoNotice(siteCount) {
+  incognitoEl.hidden = !(incognitoBlocked && siteCount > 0 && !incognitoDismissed());
+}
+
+function checkIncognitoAccess() {
+  if (!(chrome.extension && chrome.extension.isAllowedIncognitoAccess)) return;
+  chrome.extension.isAllowedIncognitoAccess((allowed) => {
+    incognitoBlocked = !allowed;
+    updateIncognitoNotice(rows.length);
+  });
+}
+
+document.getElementById("incognitoOpen").addEventListener("click", () => {
+  // The extension's details page holds the "Allow in Incognito" switch.
+  chrome.tabs.create({ url: "chrome://extensions/?id=" + chrome.runtime.id });
+});
+
+document.getElementById("incognitoDismiss").addEventListener("click", () => {
+  try {
+    localStorage.setItem(INCOGNITO_DISMISSED_KEY, "1");
+  } catch {
+    // Storage unavailable: the notice just comes back next time.
+  }
+  incognitoEl.hidden = true;
+});
+
 addBtn.addEventListener("click", add);
 urlInput.addEventListener("keydown", (e) => { if (e.key === "Enter") add(); });
 
-(async function init() {
-  const res = await api.list();
-  if (res.ok) {
-    durationOptions = res.durations || [];
-    extendOptions = res.extendOptions || [];
-    populateSelect(addDur, durationOptions);
-  }
-  render();
-})();
+checkIncognitoAccess();
+render();
 
-// Live-update the countdowns while the popup is open.
-setInterval(render, 15000);
+// Keep the countdowns live while the popup is open.
+setInterval(tick, 15000);

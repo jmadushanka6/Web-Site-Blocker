@@ -29,14 +29,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true; // async response
 });
 
-function ensureEnforced() {
-  syncRules();
-  chrome.alarms.create("dailyRefresh", { periodInMinutes: 60 * 24 });
+function resync() {
+  syncRules().catch((e) => console.error("Couldn't sync blocking rules:", e));
 }
 
-chrome.runtime.onInstalled.addListener(ensureEnforced);
-chrome.runtime.onStartup.addListener(ensureEnforced);
+// Dynamic rules already survive browser restarts and extension updates, and
+// they don't depend on time, so there's nothing to refresh on a schedule.
+// Re-syncing on install/update and on startup is just cheap insurance that
+// Chrome's rules match what's in storage.
+chrome.runtime.onInstalled.addListener(resync);
+chrome.runtime.onStartup.addListener(resync);
 
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "dailyRefresh") syncRules();
-});
+// Users can narrow or widen the extension's site access from Chrome's puzzle
+// menu at any time. Redirect rules depend on that access, so rebuild the
+// rules whenever it changes — rules.js falls back to a plain block for any
+// site the extension can no longer redirect.
+chrome.permissions.onAdded.addListener(resync);
+chrome.permissions.onRemoved.addListener(resync);

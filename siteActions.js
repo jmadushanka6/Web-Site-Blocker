@@ -1,12 +1,15 @@
 // siteActions.js
 // The service layer: each export is one user-facing action, composing
-// lockModel (rules) + storage (persistence) + rules.js (enforcement)
-// without any of those modules needing to know about each other.
+// lockModel (rules) + storage (persistence) + rules.js (enforcement) +
+// tabs.js and badge.js without any of those modules needing to know about
+// each other.
 // Dependency Inversion: this is the only file that wires the pieces
 // together, so each piece can change independently (swap storage,
 // change enforcement, tweak lock rules) without touching the others.
 import {
   normalizeDomain,
+  siteFromUrl,
+  findLockedCover,
   isBroadSuffix,
   isLocked,
   isValidDuration,
@@ -21,7 +24,8 @@ import {
 } from "./lockModel.js";
 import { getBlocklist, setBlocklist } from "./storage.js";
 import { syncRules, hasSiteAccess } from "./rules.js";
-import { reloadTabsOn } from "./tabs.js";
+import { reloadTabsOn, getTab, getActiveTab, reloadTab } from "./tabs.js";
+import { flashBadge } from "./badge.js";
 
 export async function listSites() {
   const list = await getBlocklist();
@@ -126,4 +130,52 @@ export async function relockSite(domain, durationMs) {
   await setBlocklist(list);
   await syncRules(); // refresh the redirect URL's "until" param immediately
   return { ok: true };
+}
+
+// Which site a tab is showing, and whether a lock already covers it — what
+// the popup needs to decide whether to offer its one-click "Block" button.
+export async function tabSiteStatus(tabId) {
+  const tab = await getTab(tabId);
+  const domain = siteFromUrl(tab && tab.url);
+  if (!domain) return { ok: true, domain: null, blockedBy: null };
+  const cover = findLockedCover(await getBlocklist(), domain);
+  return { ok: true, domain, blockedBy: cover ? cover.domain : null };
+}
+
+// Block whatever site a tab is showing — no typing involved — and make sure
+// that tab switches to the block straight away. `pageUrl` is a fallback for
+// when Chrome hides the tab's URL (a right-click passes the page's URL).
+export async function blockTab(tabId, durationMs, pageUrl) {
+  const tab = await getTab(tabId);
+  if (!tab) return { ok: false, error: "That tab isn't open any more." };
+  const domain = siteFromUrl(tab.url || pageUrl);
+  if (!domain) return { ok: false, error: "This page isn't a website that can be blocked." };
+  const list = await getBlocklist();
+  const cover = findLockedCover(list, domain);
+  if (cover) {
+    // Already blocked: the tab was opened before the block existed (or while
+    // the extension couldn't act on it), so a reload brings up the block.
+    await reloadTab(tabId);
+    return { ok: true, domain: cover.domain, alreadyBlocked: true };
+  }
+  const wasListed = list.some((e) => e.domain === domain);
+  const r = await addSite(domain, durationMs);
+  if (!r.ok) return r;
+  // addSite reloads the open tabs of a site that's new to the list, but it
+  // can only find them with site access, and it leaves a re-locked site's
+  // tabs alone. Make sure this tab shows the block either way.
+  if (wasListed || !(await hasSiteAccess(domain))) await reloadTab(tabId);
+  return { ok: true, domain, alreadyBlocked: false };
+}
+
+// blockTab for the right-click menu and the keyboard shortcut. No popup is
+// open there to show an error in, so a failure flashes the toolbar badge
+// (hovering the icon shows why).
+export async function quickBlockTab(tab, durationMs, pageUrl) {
+  const target = tab && tab.id >= 0 ? tab : await getActiveTab();
+  const r = target
+    ? await blockTab(target.id, durationMs, pageUrl)
+    : { ok: false, error: "There's no tab to block." };
+  if (!r.ok) await flashBadge("×", "#ff7a7a", "Couldn't block: " + r.error);
+  return r;
 }

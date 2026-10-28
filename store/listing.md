@@ -1,4 +1,4 @@
-# Chrome Web Store submission — Locked Site Blocker 1.3.0
+# Chrome Web Store submission — Locked Site Blocker 1.4.0
 
 Everything to fill in on the Chrome Web Store Developer Dashboard, in the
 order the dashboard asks for it. Text in `[brackets]` is yours to fill in.
@@ -10,11 +10,11 @@ order the dashboard asks for it. Text in `[brackets]` is yours to fill in.
 - [ ] Trader / non-trader status declared on the account page (EU consumer rules). Traders' verified contact details are shown to users.
 - [ ] This branch merged into `main`, so the privacy policy is live at its public URL (see section 3).
 - [ ] Contact line in `PRIVACY.md` filled in.
-- [ ] Package built: `npm run package` → `dist/locked-site-blocker-1.3.0.zip`.
+- [ ] Package built: `npm run package` → `dist/locked-site-blocker-1.4.0.zip`.
 
 ## 1. Package
 
-Upload `dist/locked-site-blocker-1.3.0.zip`. It contains only the files the
+Upload `dist/locked-site-blocker-1.4.0.zip`. It contains only the files the
 extension needs at runtime. Each later upload needs a higher `version` in
 `manifest.json`.
 
@@ -40,6 +40,7 @@ Block a site and choose how long the lock lasts: 24 hours, 48 hours, 7 days or 3
 
 HOW IT WORKS
 • Type or paste any link, such as facebook.com or https://twitter.com/home, and click Block. The site and all of its subdomains are blocked straight away, including tabs you already have open.
+• Or block the site you're on without typing: right-click the page (or the extension's icon) and choose Block this site, press Alt+Shift+L, or click the one-click button in the popup.
 • Visiting a blocked site shows a calm countdown page instead.
 • While a site is locked, you can make the lock longer (48 hours, 7 days or 30 days from now), but never shorter.
 • When the timer runs out, the site stays blocked until you decide: remove it, or block it again for another stretch.
@@ -69,7 +70,8 @@ so recapturing on your own machine will look closer to what users see.
 2. `2-blocked-page.png` — the countdown page shown on a blocked site.
 
 Other shots worth adding: the Extend dropdown open (only longer options
-offered), and an expired site with Remove / Block again.
+offered), an expired site with Remove / Block again, and the right-click
+"Block this site" menu.
 
 **Small promo tile** (440×280, optional but listings without one are shown
 after those that have one): `store/promo-tile-440x280.png`.
@@ -94,13 +96,16 @@ field must be a web page; there's a separate field for a support email)
 | --- | --- |
 | `declarativeNetRequest` | Blocks the websites the user adds to their block list. For each site, the extension adds a rule that shows the extension's own countdown page instead of the site (or a plain block, if site access is restricted). Rules are built only from the user's list. |
 | `storage` | Saves the user's block list (each site's domain, when it was added and when its lock ends) locally on the device, so blocks persist across browser restarts. |
-| Host permission `<all_urls>` | Chrome only lets a redirect rule act on sites the extension has host access to, and users can block any website they choose, so access can't be limited to a fixed list. It is used only to show the extension's countdown page in place of sites on the user's block list, and to reload tabs already open on a site when the user blocks it. The extension has no content scripts, never reads or changes page content, and makes no network requests. |
+| `contextMenus` | Adds a "Block this site" item to the right-click menu on web pages and on the extension's toolbar icon, so the user can block the site they're on without typing its address. Choosing a lock length from it blocks that site; the menu does nothing else. |
+| Host permission `<all_urls>` | Chrome only lets a redirect rule act on sites the extension has host access to, and users can block any website they choose, so access can't be limited to a fixed list. It is used only to show the extension's countdown page in place of sites on the user's block list, to reload tabs already open on a site when the user blocks it, and to see which site the current tab is on when the user asks to block it (from the popup, the right-click menu or the keyboard shortcut). The extension has no content scripts, never reads or changes page content, and makes no network requests. |
 
 **Remote code:** No, I am not using remote code.
 
 **Data usage:** leave every data type unticked. The only data the extension
 handles is the user's own block list, which stays on their device and is never
-collected or transmitted. Tick the three certifications (no selling or
+collected or transmitted. (It also looks at the current tab's address when the
+user asks to block the site they're on, but doesn't keep or send it; only the
+site's name goes on the list, and only if the user blocks it.) Tick the three certifications (no selling or
 transferring user data to third parties outside the approved use cases; no use
 or transfer for purposes unrelated to the single purpose; no use or transfer to
 determine creditworthiness or for lending).

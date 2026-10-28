@@ -34,4 +34,28 @@ export const api = {
   remove: (domain) => send({ type: "remove", domain }),
   extend: (domain, durationMs) => send({ type: "extend", domain, durationMs }),
   relock: (domain, durationMs) => send({ type: "relock", domain, durationMs }),
+  tabSite: (tabId) => send({ type: "tabSite", tabId }),
+  blockTab: (tabId, durationMs) => send({ type: "blockTab", tabId, durationMs }),
+
+  // The tab the popup was opened over, or null.
+  activeTabId: async () => {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      return tab ? tab.id : null;
+    } catch {
+      return null;
+    }
+  },
+
+  // The keyboard shortcut currently assigned to "block the site I'm on"
+  // (users can change it at chrome://extensions/shortcuts), or "".
+  blockShortcut: async () => {
+    try {
+      const commands = await chrome.commands.getAll();
+      const cmd = commands.find((c) => c.name === "block-current-site");
+      return (cmd && cmd.shortcut) || "";
+    } catch {
+      return "";
+    }
+  },
 };

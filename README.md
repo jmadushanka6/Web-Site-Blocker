@@ -19,6 +19,14 @@ No accounts, no config.
 - Once the timer runs out, the site is still blocked but becomes removable. At that point you can either **Remove** it for good, or **Block again** to restart the timer with a freshly chosen duration.
 - Visiting a blocked site shows a status page with a live countdown to when it becomes removable.
 
+### Block the site you're on, without typing
+
+- **Right-click** anywhere on the page → **Block this site** → pick 24 hours, 48 hours, 7 days or 30 days. The same menu is on the extension's toolbar icon (right-click it).
+- Or press **Alt+Shift+L** (Option+Shift+L on a Mac) to block it for 24 hours. You can change the shortcut at `chrome://extensions/shortcuts`.
+- Or open the popup while you're on the site and click **Block ‹site›** at the top. It uses the lock length picked in the dropdown below it.
+
+The page switches to the blocked screen straight away. On a page that isn't a website (a `chrome://` page, the new-tab page), nothing is blocked and the toolbar icon briefly shows a red ×; hover it to see why.
+
 ## Limits
 
 This tool discourages impulse browsing; it isn't tamper-proof security.
@@ -36,7 +44,7 @@ Your list lives in local extension storage — nothing leaves your machine. See 
 
 - Uses Chrome's `declarativeNetRequest` to redirect blocked pages to a local "blocked" screen. Where the extension's site access has been restricted, it falls back to a plain block rule, which needs no site access.
 - Blocking rules are rebuilt on install, on browser startup, after every change, and whenever the extension's site access changes.
-- The code is split by responsibility: `lockModel.js` (pure lock rules), `storage.js` (persistence), `rules.js` (enforcement), `tabs.js` (applying new blocks to open tabs), `siteActions.js` (the actual add/remove/extend/relock operations), and `background.js` (thin event wiring). The popup follows the same split (`popupApi.js` / `popupRender.js` / `popup.js`).
+- The code is split by responsibility: `lockModel.js` (pure lock rules), `storage.js` (persistence), `rules.js` (enforcement), `tabs.js` (applying new blocks to open tabs, finding the current tab), `contextMenu.js` (the right-click menu), `badge.js` (the toolbar badge), `siteActions.js` (the actual add/remove/extend/relock/block-this-tab operations), and `background.js` (thin event wiring). The popup follows the same split (`popupApi.js` / `popupRender.js` / `popup.js`).
 
 ## Development
 

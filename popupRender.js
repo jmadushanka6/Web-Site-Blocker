@@ -168,3 +168,38 @@ export function buildItem(entry, now, options, callbacks) {
   refresh(now);
   return { el: li, refresh };
 }
+
+// One-click "Block <site in this tab>" button, plus the divider above the
+// text field. durationLabel mirrors the lock-length dropdown it shares.
+export function buildQuickAdd(domain, durationLabel, onBlock) {
+  const frag = document.createDocumentFragment();
+
+  const btn = document.createElement("button");
+  btn.className = "quick-add";
+  btn.setAttribute("aria-label", `Block ${domain} for ${durationLabel}`);
+  const icon = document.createElement("span");
+  icon.className = "qa-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = "＋";
+  const text = document.createElement("span");
+  text.className = "qa-text";
+  const name = document.createElement("b");
+  name.textContent = domain;
+  text.append("Block ", name);
+  const dur = document.createElement("span");
+  dur.className = "qa-dur";
+  dur.textContent = durationLabel;
+  btn.append(icon, text, dur);
+  btn.addEventListener("click", () => {
+    btn.disabled = true; // one block per click, even on a double-click
+    onBlock();
+  });
+
+  const or = document.createElement("div");
+  or.className = "or";
+  or.setAttribute("aria-hidden", "true");
+  or.textContent = "or type a site";
+
+  frag.append(btn, or);
+  return frag;
+}

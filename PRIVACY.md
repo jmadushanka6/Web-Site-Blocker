@@ -11,6 +11,10 @@ shared.
 - The list of websites you block and, for each one, when you added it and when
   its lock ends.
 - Whether you've dismissed the Incognito notice in the extension's popup.
+- When the extension was last running (updated about once a minute, and when
+  you use it) and, for
+  the last 20 times it was switched off, when it went off, when it came back
+  on and whether you've dismissed the notice about it.
 
 This is kept locally in your browser using Chrome's extension storage. It isn't
 synced to your Google account or to other devices.
@@ -34,6 +38,9 @@ synced to your Google account or to other devices.
 - **Storage** (`storage`): keeps your block list on your device.
 - **Right-click menu** (`contextMenus`): adds "Block this site" to the menu you
   get when you right-click a page or the extension's icon.
+- **Alarms** (`alarms`): wakes the extension about once a minute to note that
+  it's running, so it can tell you later if it was switched off, and for how
+  long.
 - **Access to all websites** (`<all_urls>`): lets Chrome show the extension's
   countdown page in place of a site on your list, reload tabs already open on a
   site when you block it, and see which site the current tab is on when you ask

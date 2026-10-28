@@ -3,7 +3,7 @@
 // No messaging details and no DOM-building details live here — this file
 // only coordinates the two.
 import { api } from "./popupApi.js";
-import { buildItem, buildEmptyState, populateSelect, buildQuickAdd } from "./popupRender.js";
+import { buildItem, buildEmptyState, populateSelect, buildQuickAdd, buildOffNotice } from "./popupRender.js";
 
 const urlInput = document.getElementById("url");
 const addDur = document.getElementById("addDur");
@@ -15,6 +15,7 @@ const incognitoEl = document.getElementById("incognito");
 const accessNoticeEl = document.getElementById("accessNotice");
 const quickEl = document.getElementById("quickAdd");
 const tipEl = document.getElementById("tip");
+const offNoticeEl = document.getElementById("offNotice");
 
 let durationOptions = [];
 let extendOptions = [];
@@ -24,6 +25,7 @@ let renderSeq = 0; // only the newest render() is allowed to touch the DOM
 let incognitoBlocked = false; // true when blocks don't reach Incognito windows
 let activeTabId = null; // the tab the popup was opened over
 let quickDomain = null; // that tab's site, when it can be blocked in one click
+let offNoticeKey = ""; // what the "switched off" notice currently shows
 
 function showMsg(text, kind) {
   clearTimeout(msgTimer);
@@ -51,6 +53,24 @@ async function handleRelock(domain, durationMs) {
 async function handleRemove(domain) {
   const r = await api.remove(domain);
   if (r.ok) { showMsg(domain + " removed.", "ok"); render(); }
+  else showMsg(r.error, "err");
+}
+
+// Rebuilt only when what it says changes, so it isn't re-announced to
+// screen readers (or re-animated) on every list refresh.
+function renderOffNotice(periods) {
+  const key = JSON.stringify(periods || []);
+  if (key === offNoticeKey) return;
+  offNoticeKey = key;
+  offNoticeEl.innerHTML = "";
+  if (periods && periods.length) {
+    offNoticeEl.appendChild(buildOffNotice(periods, Date.now(), handleDismissOffNotice));
+  }
+}
+
+async function handleDismissOffNotice() {
+  const r = await api.dismissOffNotice();
+  if (r.ok) render();
   else showMsg(r.error, "err");
 }
 
@@ -96,6 +116,7 @@ async function render() {
   durationOptions = res.durations || durationOptions;
   extendOptions = res.extendOptions || extendOptions;
   if (!addDur.options.length) populateSelect(addDur, durationOptions);
+  renderOffNotice(res.offPeriods);
 
   const now = Date.now();
   const list = (res.list || []).slice().sort((a, b) => {
@@ -198,6 +219,10 @@ checkIncognitoAccess();
   const shortcut = await api.blockShortcut();
   if (shortcut) tipEl.textContent = `Tip: right-click any page → Block this site, or press ${shortcut}.`;
 })();
+
+// Show the "it was switched off" notice the moment the background logs one
+// (it can notice a moment after the popup opens).
+api.onOffLogChange(render);
 
 // Keep the countdowns live while the popup is open.
 setInterval(tick, 15000);

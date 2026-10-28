@@ -203,3 +203,116 @@ export function buildQuickAdd(domain, durationLabel, onBlock) {
   frag.append(btn, or);
   return frag;
 }
+
+// ---------------------------------------------------------------------------
+// "The blocker was switched off" notice. The wording helpers are pure (no
+// DOM), so they're unit-tested directly (tests/popupRender.test.js).
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function startOfDay(ts) {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function timeLabel(ts) {
+  return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+// "today", "yesterday" or "on Mon 26 Oct".
+export function dayPhrase(ts, now = Date.now()) {
+  const daysAgo = Math.round((startOfDay(now) - startOfDay(ts)) / DAY_MS);
+  if (daysAgo === 0) return "today";
+  if (daysAgo === 1) return "yesterday";
+  return "on " + new Date(ts).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+}
+
+// "10:02 to 10:40 today", or "22:15 yesterday to 08:10 today".
+export function fmtRange(from, to, now = Date.now()) {
+  if (startOfDay(from) === startOfDay(to)) {
+    return `${timeLabel(from)} to ${timeLabel(to)} ${dayPhrase(to, now)}`;
+  }
+  return `${timeLabel(from)} ${dayPhrase(from, now)} to ${timeLabel(to)} ${dayPhrase(to, now)}`;
+}
+
+// "less than a minute", "38 min", "2 hr 5 min", "1 day 3 hr".
+export function fmtDuration(ms) {
+  const totalMin = Math.round(Math.max(0, ms) / 60000);
+  if (totalMin < 1) return "less than a minute";
+  const d = Math.floor(totalMin / 1440);
+  const h = Math.floor((totalMin % 1440) / 60);
+  const m = totalMin % 60;
+  if (d > 0) return `${d} day${d === 1 ? "" : "s"}` + (h ? ` ${h} hr` : "");
+  if (h > 0) return `${h} hr` + (m ? ` ${m} min` : "");
+  return `${m} min`;
+}
+
+// When one off period happened: "from about 10:02 to 10:40 today",
+// "around 10:36 today" (started and ended in the same minute), or
+// "until 10:40 today" (start unknown).
+function spanPhrase(p, now) {
+  if (!p.offAt) return `until ${timeLabel(p.onAt)} ${dayPhrase(p.onAt, now)}`;
+  if (startOfDay(p.offAt) === startOfDay(p.onAt) && timeLabel(p.offAt) === timeLabel(p.onAt)) {
+    return `around ${timeLabel(p.onAt)} ${dayPhrase(p.onAt, now)}`;
+  }
+  return `from about ${fmtRange(p.offAt, p.onAt, now)}`;
+}
+
+// periods: [{ offAt (ms, or null if unknown), onAt (ms) }], oldest first.
+export function describeOffPeriods(periods, now = Date.now()) {
+  const latest = periods[periods.length - 1];
+  const when = spanPhrase(latest, now);
+
+  if (periods.length === 1) {
+    const length = latest.offAt ? ` (${fmtDuration(latest.onAt - latest.offAt)})` : "";
+    return {
+      title: "The blocker was switched off",
+      body: `It was off ${when}${length}, so your blocked sites could be opened during that time.`,
+    };
+  }
+
+  const total = fmtDuration(
+    periods.reduce((sum, p) => sum + (p.offAt ? Math.max(0, p.onAt - p.offAt) : 0), 0)
+  );
+  const totalText = total.startsWith("less") ? "Less than a minute" : "About " + total;
+  return {
+    title: `The blocker was switched off ${periods.length === 2 ? "twice" : periods.length + " times"}`,
+    body:
+      `${totalText} off in total — most recently ${when}. ` +
+      "Your blocked sites could be opened while it was off.",
+  };
+}
+
+export function buildOffNotice(periods, now, onDismiss) {
+  const { title, body } = describeOffPeriods(periods, now);
+
+  const box = document.createElement("div");
+  box.className = "off-notice";
+  box.setAttribute("role", "alert");
+
+  const icon = document.createElement("div");
+  icon.className = "on-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = "⚠️";
+
+  const content = document.createElement("div");
+  content.className = "on-content";
+  const t = document.createElement("p");
+  t.className = "on-title";
+  t.textContent = title;
+  const b = document.createElement("p");
+  b.className = "on-body";
+  b.textContent = body;
+  const btn = document.createElement("button");
+  btn.className = "on-dismiss";
+  btn.textContent = "Got it";
+  btn.addEventListener("click", () => {
+    btn.disabled = true;
+    onDismiss();
+  });
+  content.append(t, b, btn);
+
+  box.append(icon, content);
+  return box;
+}

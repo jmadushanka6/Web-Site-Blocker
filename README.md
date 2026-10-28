@@ -27,6 +27,10 @@ No accounts, no config.
 
 The page switches to the blocked screen straight away. On a page that isn't a website (a `chrome://` page, the new-tab page), nothing is blocked and the toolbar icon briefly shows a red ×; hover it to see why.
 
+### If the blocker is switched off
+
+While the extension is turned off in `chrome://extensions` (this includes switching **Developer mode** off, which turns off extensions loaded from source), Chrome enforces none of the blocks. When it's switched back on, the popup opens with a notice at the very top saying when it was off and for how long, and the toolbar icon shows an amber **!** until you click **Got it**. If it was switched off more than once, the notice gives the count, the total time off and the most recent period.
+
 ## Limits
 
 This tool discourages impulse browsing; it isn't tamper-proof security.
@@ -34,7 +38,7 @@ This tool discourages impulse browsing; it isn't tamper-proof security.
 - **Incognito:** Chrome doesn't run extensions in Incognito windows unless you allow it (`chrome://extensions` → Details → **Allow in Incognito**). The popup shows a reminder until you do or dismiss it.
 - **Site access:** if you limit the extension's site access from Chrome's puzzle menu, blocked sites stay blocked but show Chrome's standard "blocked" page instead of the countdown.
 - **Embedded content:** only full page loads are blocked. Content from a blocked site embedded in another page (say, a YouTube video on a news site) still loads.
-- **Bypasses:** turning off or removing the extension, using another browser or Chrome profile, or moving the computer's clock forward all get around the lock.
+- **Bypasses:** turning the extension off gets around the lock for as long as it's off, though the popup reports it afterwards. Removing the extension (which deletes its record too), using another browser or Chrome profile, or moving the computer's clock forward get around it without a trace.
 
 ## Privacy
 
@@ -44,7 +48,8 @@ Your list lives in local extension storage — nothing leaves your machine. See 
 
 - Uses Chrome's `declarativeNetRequest` to redirect blocked pages to a local "blocked" screen. Where the extension's site access has been restricted, it falls back to a plain block rule, which needs no site access.
 - Blocking rules are rebuilt on install, on browser startup, after every change, and whenever the extension's site access changes.
-- The code is split by responsibility: `lockModel.js` (pure lock rules), `storage.js` (persistence), `rules.js` (enforcement), `tabs.js` (applying new blocks to open tabs, finding the current tab), `contextMenu.js` (the right-click menu), `badge.js` (the toolbar badge), `siteActions.js` (the actual add/remove/extend/relock/block-this-tab operations), and `background.js` (thin event wiring). The popup follows the same split (`popupApi.js` / `popupRender.js` / `popup.js`).
+- Chrome gives an extension no event for being switched off or on, so the notice is worked out instead: Chrome wipes the extension's session storage whenever it's switched off, updated or the browser restarts. A browser restart and an update each announce themselves (`runtime.onStartup` / `runtime.onInstalled`), so a wiped session that neither of them explains means the extension was switched off and back on. A once-a-minute heartbeat (an alarm), and anything you do with the extension, records when it was last running, which gives the "off from about…" time. If it's switched off a while after you last used it, that time can be up to about a minute early.
+- The code is split by responsibility: `lockModel.js` (pure lock rules), `storage.js` (persistence), `rules.js` (enforcement), `tabs.js` (applying new blocks to open tabs, finding the current tab), `contextMenu.js` (the right-click menu), `offTracker.js` (noticing the extension was switched off), `badge.js` (the toolbar badge), `siteActions.js` (the actual add/remove/extend/relock/block-this-tab operations), and `background.js` (thin event wiring). The popup follows the same split (`popupApi.js` / `popupRender.js` / `popup.js`).
 
 ## Development
 

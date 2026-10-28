@@ -53,7 +53,7 @@ PRIVATE BY DESIGN
 GOOD TO KNOW
 • Chrome doesn't run extensions in Incognito windows unless you allow it. To block sites there too, open chrome://extensions, choose Details for Locked Site Blocker and turn on "Allow in Incognito". The extension reminds you about this.
 • If you limit the extension's site access in Chrome, blocked sites stay blocked but show Chrome's standard "blocked" page instead of the countdown.
-• Like any extension, it can be turned off or removed from chrome://extensions. It's built to stop impulse browsing, not to be impossible to remove.
+• Like any extension, it can be turned off or removed from chrome://extensions. It's built to stop impulse browsing, not to be impossible to remove. If it's switched off and on again, the popup tells you when it was off and for how long.
 
 WHY "ACCESS TO ALL WEBSITES"?
 Chrome only lets an extension redirect a site it has access to, and you can block any site you like. Locked Site Blocker uses this access only to show its countdown page in place of the sites on your list.
@@ -95,14 +95,16 @@ field must be a web page; there's a separate field for a support email)
 | Permission | Justification |
 | --- | --- |
 | `declarativeNetRequest` | Blocks the websites the user adds to their block list. For each site, the extension adds a rule that shows the extension's own countdown page instead of the site (or a plain block, if site access is restricted). Rules are built only from the user's list. |
-| `storage` | Saves the user's block list (each site's domain, when it was added and when its lock ends) locally on the device, so blocks persist across browser restarts. |
+| `storage` | Saves the user's block list (each site's domain, when it was added and when its lock ends) locally on the device, so blocks persist across browser restarts. It also keeps, on the device, the time the extension was last running and a short log of times it was switched off, so the popup can tell the user about them. |
 | `contextMenus` | Adds a "Block this site" item to the right-click menu on web pages and on the extension's toolbar icon, so the user can block the site they're on without typing its address. Choosing a lock length from it blocks that site; the menu does nothing else. |
+| `alarms` | A once-a-minute heartbeat that records, on the device, that the extension is running. While the extension is switched off, none of the user's blocks apply; when it's switched back on, the last heartbeat tells the popup roughly when it went off, so it can show the user when and for how long their blocks weren't working. |
 | Host permission `<all_urls>` | Chrome only lets a redirect rule act on sites the extension has host access to, and users can block any website they choose, so access can't be limited to a fixed list. It is used only to show the extension's countdown page in place of sites on the user's block list, to reload tabs already open on a site when the user blocks it, and to see which site the current tab is on when the user asks to block it (from the popup, the right-click menu or the keyboard shortcut). The extension has no content scripts, never reads or changes page content, and makes no network requests. |
 
 **Remote code:** No, I am not using remote code.
 
 **Data usage:** leave every data type unticked. The only data the extension
-handles is the user's own block list, which stays on their device and is never
+handles is the user's own block list and a short log of when the extension
+itself was switched off, both of which stay on their device and are never
 collected or transmitted. (It also looks at the current tab's address when the
 user asks to block the site they're on, but doesn't keep or send it; only the
 site's name goes on the list, and only if the user blocks it.) Tick the three certifications (no selling or

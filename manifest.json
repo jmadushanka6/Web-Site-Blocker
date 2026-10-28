@@ -3,11 +3,12 @@
   "name": "Locked Site Blocker",
   "version": "1.4.0",
   "description": "Block distracting sites and their subdomains behind a timer lock. Extend it anytime; remove a site only after its timer runs out.",
-  "minimum_chrome_version": "101",
+  "minimum_chrome_version": "102",
   "permissions": [
     "declarativeNetRequest",
     "storage",
-    "contextMenus"
+    "contextMenus",
+    "alarms"
   ],
   "host_permissions": [
     "<all_urls>"

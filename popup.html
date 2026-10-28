@@ -40,6 +40,29 @@
     flex-direction: column;
   }
   body > * { flex: none; }
+
+  /* "The blocker was switched off" notice — always the first thing shown. */
+  .off-notice {
+    display: flex; gap: 10px;
+    background: rgba(245, 181, 69, 0.1);
+    border: 1px solid rgba(245, 181, 69, 0.4);
+    border-radius: 12px;
+    padding: 10px 11px 11px;
+    margin-bottom: 14px;
+    animation: fade-in 0.18s ease;
+  }
+  .off-notice .on-icon { font-size: 15px; line-height: 1.3; flex: none; }
+  .off-notice .on-content { min-width: 0; }
+  .off-notice .on-title { font-size: 12.5px; font-weight: 700; color: var(--warn); margin: 0 0 3px; }
+  .off-notice .on-body { font-size: 11.5px; line-height: 1.45; color: #d9dce3; margin: 0; }
+  .off-notice .on-dismiss {
+    margin-top: 8px; border: none; border-radius: 7px; padding: 5px 11px;
+    font-size: 11.5px; font-weight: 600; cursor: pointer;
+    background: rgba(245, 181, 69, 0.18); color: var(--warn);
+    transition: background 0.15s ease;
+  }
+  .off-notice .on-dismiss:hover { background: rgba(245, 181, 69, 0.3); }
+
   .sr-only {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
@@ -210,6 +233,8 @@
 </style>
 </head>
 <body>
+  <div id="offNotice"></div>
+
   <header>
     <div class="logo" aria-hidden="true">🔒</div>
     <div>

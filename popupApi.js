@@ -11,6 +11,10 @@
 // chrome://extensions, so messages can come back unrecognized or not at all.
 const RETRY_HINT = "Close this popup and open it again.";
 
+// Storage key the background keeps the "it was switched off" log under
+// (see offTracker.js).
+const OFF_LOG = "offLog";
+
 function send(msg) {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(msg, (response) => {
@@ -36,6 +40,15 @@ export const api = {
   relock: (domain, durationMs) => send({ type: "relock", domain, durationMs }),
   tabSite: (tabId) => send({ type: "tabSite", tabId }),
   blockTab: (tabId, durationMs) => send({ type: "blockTab", tabId, durationMs }),
+  dismissOffNotice: () => send({ type: "dismissOffNotice" }),
+
+  // Call `callback` whenever the background logs (or clears) a time the
+  // extension was switched off, so the notice appears without reopening.
+  onOffLogChange: (callback) => {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === "local" && changes[OFF_LOG]) callback();
+    });
+  },
 
   // The tab the popup was opened over, or null.
   activeTabId: async () => {

@@ -1,8 +1,8 @@
 // siteActions.js
 // The service layer: each export is one user-facing action, composing
 // lockModel (rules) + storage (persistence) + rules.js (enforcement) +
-// tabs.js and badge.js without any of those modules needing to know about
-// each other.
+// tabs.js, offTracker.js and badge.js without any of those modules needing
+// to know about each other.
 // Dependency Inversion: this is the only file that wires the pieces
 // together, so each piece can change independently (swap storage,
 // change enforcement, tweak lock rules) without touching the others.
@@ -25,7 +25,8 @@ import {
 import { getBlocklist, setBlocklist } from "./storage.js";
 import { syncRules, hasSiteAccess } from "./rules.js";
 import { reloadTabsOn, getTab, getActiveTab, reloadTab } from "./tabs.js";
-import { flashBadge } from "./badge.js";
+import { getUnseenOffPeriods, acknowledgeOffPeriods } from "./offTracker.js";
+import { showAttention, flashBadge } from "./badge.js";
 
 export async function listSites() {
   const list = await getBlocklist();
@@ -39,6 +40,8 @@ export async function listSites() {
     durations: DURATION_OPTIONS,
     extendOptions: EXTEND_OPTIONS,
     defaultDurationMs: DEFAULT_DURATION_MS,
+    // Times the extension was switched off that the user hasn't dismissed yet.
+    offPeriods: await getUnseenOffPeriods(),
   };
 }
 
@@ -176,6 +179,18 @@ export async function quickBlockTab(tab, durationMs, pageUrl) {
   const r = target
     ? await blockTab(target.id, durationMs, pageUrl)
     : { ok: false, error: "There's no tab to block." };
-  if (!r.ok) await flashBadge("×", "#ff7a7a", "Couldn't block: " + r.error);
+  if (!r.ok) await flashBadge("×", "#ff7a7a", "Couldn't block: " + r.error, refreshBadge);
   return r;
+}
+
+// Keep the toolbar badge in step with the "it was switched off" notice.
+export async function refreshBadge() {
+  await showAttention((await getUnseenOffPeriods()).length > 0);
+}
+
+// The user has read the "it was switched off" notice in the popup.
+export async function dismissOffNotice() {
+  await acknowledgeOffPeriods();
+  await refreshBadge();
+  return { ok: true };
 }

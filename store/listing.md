@@ -1,35 +1,51 @@
-# Chrome Web Store submission — Locked Site Blocker 1.4.0
+# Store submission — Locked Site Blocker 1.5.0
 
-Everything to fill in on the Chrome Web Store Developer Dashboard, in the
-order the dashboard asks for it. Text in `[brackets]` is yours to fill in.
+Everything to fill in on the Chrome Web Store Developer Dashboard (and the
+Microsoft Edge Add-ons dashboard), in the order the dashboards ask for it.
+Text in `[brackets]` is yours to fill in.
+
+Version 1.5.0 is the first public release. It is the 1.4.0 branch plus:
+an English and German interface (`_locales/`), a German store listing, a
+one-time "rate it / support it" prompt after a week of use, and German
+screenshots.
 
 ## 0. Before you start
 
-- [ ] Developer account registered (one-time US$5 fee).
-- [ ] 2-Step Verification turned on for that Google account — required before you can publish.
-- [ ] Trader / non-trader status declared on the account page (EU consumer rules). Traders' verified contact details are shown to users.
-- [ ] This branch merged into `main`, so the privacy policy is live at its public URL (see section 3).
-- [ ] Contact line in `PRIVACY.md` filled in.
-- [ ] Package built: `npm run package` → `dist/locked-site-blocker-1.4.0.zip`.
+- [ ] Developer account registered (one-time US$5 fee) with an email you'll
+      keep — it can't be changed later.
+- [ ] 2-Step Verification turned on for that Google account — required to publish.
+- [ ] Trader / non-trader status declared on the account page (EU consumer
+      law). If you declare yourself a trader, your name, address, phone and
+      email are shown publicly on the listing. Decide before publishing; see
+      "Money" below.
+- [ ] Contact line filled in at the bottom of both halves of `PRIVACY.md`.
+- [ ] `SUPPORT_URL` in `support.js` set to your Ko-fi page, or left empty
+      (then no support button or link appears at all).
+- [ ] This branch merged into `main`, so the privacy policy is live at its public URL.
+- [ ] `npm test` passes; `npm run package` → `dist/locked-site-blocker-1.5.0.zip`.
 
 ## 1. Package
 
-Upload `dist/locked-site-blocker-1.4.0.zip`. It contains only the files the
-extension needs at runtime. Each later upload needs a higher `version` in
-`manifest.json`.
+Upload `dist/locked-site-blocker-1.5.0.zip`. It contains only the files the
+extension needs at runtime, including `_locales/`. Every later upload needs a
+higher `version` in `manifest.json`.
 
 ## 2. Store listing tab
 
-**Name** (from the manifest): Locked Site Blocker
+The name and summary come from `_locales/<lang>/messages.json`
+(`extName`, `extDescription`), so the store shows them in the visitor's
+language. Pick each language from the dropdown at the top of the tab and
+paste its detailed description and screenshots.
 
-**Summary** (from the manifest description, 129 of 132 characters):
+**Category:** Productivity → Workflow & Planning (or the closest subcategory offered).
+
+### English (default)
+
+**Name:** Locked Site Blocker
+
+**Summary** (129 of 132 characters):
 
 > Block distracting sites and their subdomains behind a timer lock. Extend it anytime; remove a site only after its timer runs out.
-
-**Category:** Productivity. If the dashboard asks for a subcategory, pick the
-closest fit (for example Workflow & Planning or Tools).
-
-**Language:** English
 
 **Detailed description** (plain text — paste as is):
 
@@ -47,10 +63,11 @@ HOW IT WORKS
 
 PRIVATE BY DESIGN
 • Your block list is stored only in your browser. Nothing is collected, sent anywhere or shared.
-• No account, no ads, no tracking, no analytics.
+• No account, no ads, no tracking, no analytics. Open source.
 • The extension never reads the content of the pages you visit.
 
 GOOD TO KNOW
+• Available in English and German.
 • Chrome doesn't run extensions in Incognito windows unless you allow it. To block sites there too, open chrome://extensions, choose Details for Locked Site Blocker and turn on "Allow in Incognito". The extension reminds you about this.
 • If you limit the extension's site access in Chrome, blocked sites stay blocked but show Chrome's standard "blocked" page instead of the countdown.
 • Like any extension, it can be turned off or removed from chrome://extensions. It's built to stop impulse browsing, not to be impossible to remove. If it's switched off and on again, the popup tells you when it was off and for how long.
@@ -59,30 +76,64 @@ WHY "ACCESS TO ALL WEBSITES"?
 Chrome only lets an extension redirect a site it has access to, and you can block any site you like. Locked Site Blocker uses this access only to show its countdown page in place of the sites on your list.
 ```
 
-**Store icon:** `icons/icon128.png` (128×128, artwork within 96×96 and 16 px of
-transparent padding).
+**Screenshots:** `store/screenshots/en/1-popup.png`, `store/screenshots/en/2-blocked-page.png`
 
-**Screenshots** (1280×800, at least one, up to five). Drafts are in
-`store/screenshots/`. They were captured in headless Chromium with sample data,
-so recapturing on your own machine will look closer to what users see.
+### Deutsch
 
-1. `1-popup.png` — the popup with a few locked sites and their countdowns.
-2. `2-blocked-page.png` — the countdown page shown on a blocked site.
+**Name:** Locked Site Blocker – Websites sperren mit Timer
 
-Other shots worth adding: the Extend dropdown open (only longer options
-offered), an expired site with Remove / Block again, and the right-click
-"Block this site" menu.
+**Kurzbeschreibung** (125 von 132 Zeichen):
 
-**Small promo tile** (440×280, optional but listings without one are shown
-after those that have one): `store/promo-tile-440x280.png`.
+> Sperrt ablenkende Websites samt Subdomains mit einem Timer. Verlängern geht jederzeit, entfernen erst nach Ablauf des Timers.
 
-**Marquee promo tile** (1400×560): optional, only needed to be considered for
-featuring.
+**Ausführliche Beschreibung** (reiner Text — so einfügen):
+
+```
+Locked Site Blocker hält dich von ablenkenden Websites fern – mit Sperren, die du nicht spontan aufheben kannst. Ideal zum Lernen, für die Prüfungsphase, fürs Homeoffice oder einfach weniger Social Media.
+
+Sperre eine Website und wähle, wie lange die Sperre gilt: 24 Stunden, 48 Stunden, 7 Tage oder 30 Tage. Bis der Timer abläuft, lässt sich die Website nicht von deiner Liste entfernen. Es gibt schlicht keinen Entfernen-Knopf – ein schwacher Moment kann also keine Entscheidung rückgängig machen, die du mit klarem Kopf getroffen hast.
+
+SO FUNKTIONIERT ES
+• Link eintippen oder einfügen, z. B. instagram.com oder https://www.youtube.com, und auf „Sperren“ klicken. Die Website und alle Subdomains sind sofort gesperrt – auch in Tabs, die schon offen sind.
+• Oder sperre die Website, auf der du gerade bist, ohne zu tippen: Rechtsklick auf die Seite (oder das Erweiterungssymbol) → „Diese Website sperren“, Alt+Umschalttaste+L drücken oder den Ein-Klick-Knopf im Erweiterungsfenster nutzen.
+• Wer eine gesperrte Website aufruft, sieht stattdessen eine ruhige Countdown-Seite.
+• Solange eine Website gesperrt ist, kannst du die Sperre verlängern (48 Stunden, 7 Tage oder 30 Tage ab jetzt) – aber nie verkürzen.
+• Ist der Timer abgelaufen, bleibt die Website gesperrt, bis du entscheidest: entfernen oder erneut sperren.
+
+DATENSCHUTZ AUS PRINZIP
+• Deine Sperrliste wird nur in deinem Browser gespeichert. Es wird nichts erhoben, übertragen oder weitergegeben.
+• Kein Konto, keine Werbung, kein Tracking, keine Analyse. Open Source.
+• Die Erweiterung liest nie die Inhalte der Seiten, die du besuchst.
+
+GUT ZU WISSEN
+• Komplett auf Deutsch (und Englisch).
+• Chrome führt Erweiterungen in Inkognito-Fenstern nur aus, wenn du es erlaubst. Damit Sperren auch dort gelten: chrome://extensions öffnen, bei Locked Site Blocker auf „Details“ klicken und „Im Inkognitomodus zulassen“ einschalten. Die Erweiterung erinnert dich daran.
+• Wenn du den Websitezugriff der Erweiterung einschränkst, bleiben gesperrte Websites gesperrt, zeigen aber Chromes einfache Sperrseite statt des Countdowns.
+• Wie jede Erweiterung lässt sie sich unter chrome://extensions ausschalten oder entfernen. Sie soll spontanes Surfen verhindern, nicht unentfernbar sein. Wird sie aus- und wieder eingeschaltet, zeigt das Erweiterungsfenster, wann und wie lange sie aus war.
+
+WARUM „ZUGRIFF AUF ALLE WEBSITES“?
+Chrome erlaubt einer Erweiterung nur dann, eine Website umzuleiten, wenn sie Zugriff darauf hat – und du kannst jede beliebige Website sperren. Locked Site Blocker nutzt diesen Zugriff ausschließlich, um statt der Websites auf deiner Liste die Countdown-Seite anzuzeigen.
+```
+
+**Screenshots:** `store/screenshots/de/1-popup.png`, `store/screenshots/de/2-blocked-page.png`
+
+The search terms German users type — *Websites sperren*, *Website blockieren*,
+*Seiten sperren*, *Fokus*, *Prokrastination*, *lernen*, *Prüfungsphase*,
+*Social Media* — appear naturally in the name and description above. Don't
+add a keyword list; the store treats that as spam.
+
+### Graphics (all languages)
+
+- **Store icon:** `icons/icon128.png` (128×128).
+- **Screenshots** (1280×800): per language as above. Recapture with
+  `node scripts/screenshots.cjs` after UI changes.
+- **Small promo tile** (440×280): `store/promo-tile-440x280.png`. Promo tiles
+  can't be localised.
+- **Marquee promo tile** (1400×560): optional, only for featuring.
 
 **Homepage URL:** https://github.com/jmadushanka6/Web-Site-Blocker
 
-**Support URL:** https://github.com/jmadushanka6/Web-Site-Blocker/issues (this
-field must be a web page; there's a separate field for a support email)
+**Support URL:** https://github.com/jmadushanka6/Web-Site-Blocker/issues
 
 ## 3. Privacy practices tab
 
@@ -103,19 +154,15 @@ field must be a web page; there's a separate field for a support email)
 **Remote code:** No, I am not using remote code.
 
 **Data usage:** leave every data type unticked. The only data the extension
-handles is the user's own block list and a short log of when the extension
-itself was switched off, both of which stay on their device and are never
-collected or transmitted. (It also looks at the current tab's address when the
-user asks to block the site they're on, but doesn't keep or send it; only the
-site's name goes on the list, and only if the user blocks it.) Tick the three certifications (no selling or
-transferring user data to third parties outside the approved use cases; no use
-or transfer for purposes unrelated to the single purpose; no use or transfer to
-determine creditworthiness or for lending).
+handles is the user's own block list, a short log of when the extension itself
+was switched off, and two popup settings (when the popup was first opened,
+and whether its one-time rating prompt was dismissed), all of which stay on
+their device and are never collected or transmitted. (It also looks at the
+current tab's address when the user asks to block the site they're on, but
+doesn't keep or send it.) Tick the three certifications.
 
 **Privacy policy URL:** https://github.com/jmadushanka6/Web-Site-Blocker/blob/main/PRIVACY.md
-
-The repo is public, so this link works for reviewers and users as soon as this
-branch is merged into `main`. Fill in the contact line in `PRIVACY.md` first.
+(English and German in one page.)
 
 The dashboard answers, the privacy policy and what the code does must match.
 If you change what the extension stores or which permissions it uses, update
@@ -123,20 +170,37 @@ all three.
 
 ## 4. Distribution tab
 
-- **Visibility:** consider **Private** first, with a few trusted testers added
-  in your account settings. It goes through the same review as a public
-  listing, so switch to **Public** once testers are happy.
-- **Regions:** all regions.
+- **Visibility:** Public. (Optionally Unlisted for a day or two first, to
+  install it from the store yourself and check everything.)
+- **Regions:** all regions. The marketing targets Germany and Austria, but
+  there's no reason to hide it elsewhere.
 
 ## 5. Review
 
 Most reviews finish within a few days. Broad host access, a new developer
 account and a new extension all draw a closer look, so the first review may
-take longer. Keep the justifications above in sync with the code if reviewers
-ask questions.
+take longer. If a reviewer asks about `<all_urls>`, answer with the
+justification above.
 
-## 6. After publishing
+## 6. Microsoft Edge Add-ons (free, do it the same week)
 
-- Add the store link to `README.md`.
-- Bump `version` in `manifest.json` for every update, then `npm test` and
-  `npm run package`.
+Edge has a large share of desktop browsers in Germany and Austria, and its own
+store lists extensions separately.
+
+1. Register at Partner Center (Microsoft account, **Individual** account type,
+   no fee).
+2. Create a new extension, upload the same `dist/locked-site-blocker-1.5.0.zip`.
+3. Availability: Public, all markets.
+4. Properties: Productivity; privacy policy URL as above; website and support
+   URLs as above.
+5. Store listings: add **English** and **German** and paste the same
+   descriptions and screenshots as for Chrome.
+6. Submit. The rating button in the popup sends Edge users to the Edge listing
+   automatically.
+
+## 7. After publishing
+
+- Put the store links into `README.md` (Install section).
+- Bump `version` in `manifest.json` for every update, then `npm test`,
+  `npm run test:e2e` and `npm run package`.
+- Reply to every review, in the reviewer's language.

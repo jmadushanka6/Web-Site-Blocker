@@ -1,0 +1,612 @@
+{
+  "extName": {
+    "message": "Locked Site Blocker – Websites sperren mit Timer"
+  },
+  "extDescription": {
+    "message": "Sperrt ablenkende Websites samt Subdomains mit einem Timer. Verlängern geht jederzeit, entfernen erst nach Ablauf des Timers."
+  },
+  "appName": {
+    "message": "Locked Site Blocker"
+  },
+  "cmdBlock": {
+    "message": "Aktuelle Website sperren (für 24 Stunden)"
+  },
+  "dateLocale": {
+    "message": "de-DE"
+  },
+  "dur_24h": {
+    "message": "24 Stunden"
+  },
+  "dur_48h": {
+    "message": "48 Stunden"
+  },
+  "dur_7d": {
+    "message": "7 Tage"
+  },
+  "dur_30d": {
+    "message": "30 Tage"
+  },
+  "menuBlock": {
+    "message": "Diese Website sperren"
+  },
+  "menuFor": {
+    "message": "Für $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "remDH": {
+    "message": "$P1$ Tg. $P2$ Std.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "remHM": {
+    "message": "$P1$ Std. $P2$ Min.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "remM": {
+    "message": "$P1$ Min.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "timeLeft": {
+    "message": "🔒 noch $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popupSub": {
+    "message": "Sperrt eine Website samt Subdomains, bis ihr Timer abläuft."
+  },
+  "labelSite": {
+    "message": "Zu sperrende Website"
+  },
+  "placeholderSite": {
+    "message": "z. B. facebook.com"
+  },
+  "labelLength": {
+    "message": "Sperrdauer"
+  },
+  "block": {
+    "message": "Sperren"
+  },
+  "incognitoText": {
+    "message": "Sperren gelten nicht in Inkognito-Fenstern."
+  },
+  "incognitoAllow": {
+    "message": "Inkognito erlauben"
+  },
+  "dismissNotice": {
+    "message": "Hinweis schließen"
+  },
+  "accessNotice": {
+    "message": "Der Websitezugriff ist eingeschränkt, daher zeigen markierte Websites Chromes einfache Sperrseite. Für den Countdown erlaube der Erweiterung im Puzzle-Menü von Chrome den Zugriff auf alle Websites."
+  },
+  "listTitle": {
+    "message": "Gesperrte Websites"
+  },
+  "footerExtend": {
+    "message": "Verlängern fügt immer nur Zeit hinzu – nie umgekehrt."
+  },
+  "tipDefault": {
+    "message": "Tipp: Rechtsklick auf eine Seite → Diese Website sperren."
+  },
+  "tipShortcut": {
+    "message": "Tipp: Rechtsklick auf eine Seite → Diese Website sperren, oder $P1$ drücken.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "emptyState": {
+    "message": "Noch keine Websites gesperrt – füge oben die erste hinzu."
+  },
+  "countOne": {
+    "message": "1 Website"
+  },
+  "countMany": {
+    "message": "$P1$ Websites",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "unlocked": {
+    "message": "✓ Entsperrt"
+  },
+  "ariaProgress": {
+    "message": "Sperrfortschritt für $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaNewLength": {
+    "message": "Neue Sperrdauer für $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaLength": {
+    "message": "Sperrdauer für $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "extend": {
+    "message": "Verlängern"
+  },
+  "blockAgain": {
+    "message": "Erneut sperren"
+  },
+  "ariaExtend": {
+    "message": "$P1$ verlängern",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaBlockAgain": {
+    "message": "$P1$ erneut sperren",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "maxed": {
+    "message": "Bereits die längste verfügbare Sperre"
+  },
+  "remove": {
+    "message": "Entfernen"
+  },
+  "ariaRemove": {
+    "message": "$P1$ entfernen",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "plainBlockNote": {
+    "message": "Zeigt Chromes einfache Sperrseite"
+  },
+  "quickAria": {
+    "message": "$P1$ für $P2$ sperren",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "quickBlock": {
+    "message": "$P1$ sperren",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "orType": {
+    "message": "oder Website eintippen"
+  },
+  "msgBlocked": {
+    "message": "Gesperrt."
+  },
+  "msgBlockedSite": {
+    "message": "$P1$ gesperrt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgExtended": {
+    "message": "$P1$ verlängert.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgRelocked": {
+    "message": "$P1$ erneut gesperrt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgRemoved": {
+    "message": "$P1$ entfernt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "errGeneric": {
+    "message": "Etwas ist schiefgelaufen."
+  },
+  "errUnreachable": {
+    "message": "Die Erweiterung ist nicht erreichbar. Schließe dieses Fenster und öffne es erneut."
+  },
+  "errNoResponse": {
+    "message": "Die Erweiterung hat nicht geantwortet. Schließe dieses Fenster und öffne es erneut."
+  },
+  "askText": {
+    "message": "Hilft dir der Blocker, fokussiert zu bleiben?"
+  },
+  "askRate": {
+    "message": "Bewerten"
+  },
+  "askSupport": {
+    "message": "Unterstützen"
+  },
+  "supportLink": {
+    "message": "☕ Diese kostenlose Erweiterung unterstützen"
+  },
+  "today": {
+    "message": "heute"
+  },
+  "yesterday": {
+    "message": "gestern"
+  },
+  "onDate": {
+    "message": "am $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "rangeSameDay": {
+    "message": "$P3$ von etwa $P1$ bis $P2$ Uhr",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "rangeTwoDays": {
+    "message": "$P2$ ab etwa $P1$ Uhr bis $P4$ $P3$ Uhr",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      },
+      "p4": {
+        "content": "$4"
+      }
+    }
+  },
+  "spanFrom": {
+    "message": "$P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "spanAround": {
+    "message": "$P2$ gegen $P1$ Uhr",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "spanUntil": {
+    "message": "bis $P2$ $P1$ Uhr",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "durLess": {
+    "message": "weniger als eine Minute"
+  },
+  "durDay1": {
+    "message": "1 Tag"
+  },
+  "durDays": {
+    "message": "$P1$ Tage",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "durHr": {
+    "message": "$P1$ Std.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "durMin": {
+    "message": "$P1$ Min.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "offTitle1": {
+    "message": "Der Blocker war ausgeschaltet"
+  },
+  "offTitle2": {
+    "message": "Der Blocker war zweimal ausgeschaltet"
+  },
+  "offTitleN": {
+    "message": "Der Blocker war $P1$-mal ausgeschaltet",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "offBody1": {
+    "message": "Er war $P1$ ausgeschaltet$P2$. In dieser Zeit ließen sich deine gesperrten Websites öffnen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "offTotalAbout": {
+    "message": "Etwa $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "offTotalLess": {
+    "message": "Weniger als eine Minute"
+  },
+  "offBodyN": {
+    "message": "$P1$ insgesamt ausgeschaltet – zuletzt $P2$. In dieser Zeit ließen sich deine gesperrten Websites öffnen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "gotIt": {
+    "message": "Verstanden"
+  },
+  "errInvalid": {
+    "message": "Ungültiger Link. Versuch es z. B. mit facebook.com"
+  },
+  "errPublicSuffix": {
+    "message": "$P1$ ist eine Domain-Endung, die viele Websites teilen. Gib eine bestimmte Website ein, z. B. bbc.co.uk.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "errAlready": {
+    "message": "$P1$ ist bereits gesperrt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "errNotFound": {
+    "message": "Nicht gefunden."
+  },
+  "errLocked": {
+    "message": "Gesperrt. Entfernen ist in $P1$ möglich.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "errDuration": {
+    "message": "Wähle eine gültige Dauer."
+  },
+  "errAlreadyUnlocked": {
+    "message": "Diese Website ist bereits entsperrt – nutze stattdessen „Erneut sperren“."
+  },
+  "errShorter": {
+    "message": "Verlängern geht nur auf eine längere Sperre als die Restzeit – wähle eine größere Option."
+  },
+  "errStillLocked": {
+    "message": "Diese Website ist noch gesperrt – nutze stattdessen „Verlängern“."
+  },
+  "errTabGone": {
+    "message": "Dieser Tab ist nicht mehr geöffnet."
+  },
+  "errNotWebsite": {
+    "message": "Diese Seite ist keine Website, die gesperrt werden kann."
+  },
+  "errNoTab": {
+    "message": "Es gibt keinen Tab zum Sperren."
+  },
+  "badgeCouldnt": {
+    "message": "Sperren fehlgeschlagen: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "badgeAttention": {
+    "message": "Die Erweiterung war eine Zeit lang ausgeschaltet. Klicke, um zu sehen, wann."
+  },
+  "pageBlockedTitle": {
+    "message": "Website gesperrt"
+  },
+  "thisSite": {
+    "message": "diese Website"
+  },
+  "blkTabTitle": {
+    "message": "$P1$ ist gesperrt",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkTitle": {
+    "message": "Diese Website ist gesperrt"
+  },
+  "blkRemovableIn": {
+    "message": "Entfernbar in"
+  },
+  "blkMessage": {
+    "message": "Du hast diese Website gesperrt, um fokussiert zu bleiben. Sie bleibt gesperrt und lässt sich erst entfernen, wenn der Timer unten abgelaufen ist."
+  },
+  "blkHint": {
+    "message": "In der Erweiterung kannst du die Sperre jederzeit verlängern. Entfernen ist möglich, sobald der Timer abgelaufen ist."
+  },
+  "blkExpiredTitle": {
+    "message": "Diese Sperre ist abgelaufen"
+  },
+  "blkStatus": {
+    "message": "Status"
+  },
+  "blkRemovableNow": {
+    "message": "Jetzt entfernbar"
+  },
+  "blkExpiredMessage": {
+    "message": "$P1$ ist weiterhin gesperrt, aber der Timer ist abgelaufen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkExpiredHint": {
+    "message": "Öffne die Erweiterung, um die Website zu entfernen oder erneut zu sperren."
+  },
+  "blkRemovedTitle": {
+    "message": "Nicht mehr gesperrt"
+  },
+  "blkNotBlocked": {
+    "message": "Nicht gesperrt"
+  },
+  "blkRemovedMessage": {
+    "message": "$P1$ wurde von deiner Sperrliste entfernt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkGoTo": {
+    "message": "Weiter zu $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "cdD": {
+    "message": "$P1$ Tg. $P2$ Std. $P3$ Min.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "cdH": {
+    "message": "$P1$ Std. $P2$ Min. $P3$ Sek.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "cdM": {
+    "message": "$P1$ Min. $P2$ Sek.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "cdS": {
+    "message": "$P1$ Sek.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  }
+}

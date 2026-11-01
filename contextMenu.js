@@ -4,6 +4,7 @@
 // click on it back into a lock duration. What happens after the click (the
 // actual blocking) lives in siteActions.js.
 import { DURATION_OPTIONS } from "./lockModel.js";
+import { t, durationLabel } from "./i18n.js";
 
 const PAGE_ROOT = "block-page";
 const ACTION_ROOT = "block-action";
@@ -45,9 +46,9 @@ async function build() {
   for (const root of ROOTS) {
     const shared = { contexts: root.contexts };
     if (root.documentUrlPatterns) shared.documentUrlPatterns = root.documentUrlPatterns;
-    await create({ ...shared, id: root.id, title: "Block this site" });
+    await create({ ...shared, id: root.id, title: t("menuBlock") });
     for (const o of DURATION_OPTIONS) {
-      await create({ ...shared, id: root.id + SEP + o.key, parentId: root.id, title: "For " + o.label });
+      await create({ ...shared, id: root.id + SEP + o.key, parentId: root.id, title: t("menuFor", durationLabel(o)) });
     }
   }
 }

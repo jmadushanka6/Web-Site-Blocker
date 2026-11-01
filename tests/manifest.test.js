@@ -6,8 +6,16 @@ const root = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
 const manifest = JSON.parse(read("manifest.json"));
 
-test("description fits the Chrome Web Store's 132-character limit", () => {
-  assert.ok(manifest.description.length <= 132, `${manifest.description.length} characters`);
+test("name, summary and shortcut come from the message files", () => {
+  // Their length limits are checked per language in i18n.test.js.
+  assert.equal(manifest.default_locale, "en");
+  assert.equal(manifest.name, "__MSG_extName__");
+  assert.equal(manifest.description, "__MSG_extDescription__");
+  assert.match(manifest.commands["block-current-site"].description, /^__MSG_\w+__$/);
+});
+
+test("the package script ships the message files", () => {
+  assert.match(read("scripts/package.sh"), /_locales\/\*\/messages\.json/);
 });
 
 test("every file the manifest points at exists", () => {

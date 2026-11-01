@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Site blocked</title>
+<title data-i18n="pageBlockedTitle">Site blocked</title>
 <style>
   :root {
     color-scheme: dark;
@@ -88,19 +88,19 @@
 <body>
   <main class="card">
     <div class="lock-ring" id="ring" aria-hidden="true">🔒</div>
-    <h1 id="title">This site is blocked</h1>
+    <h1 id="title" data-i18n="blkTitle">This site is blocked</h1>
     <div class="dom" id="dom"></div>
-    <p class="message" id="message">You blocked this to stay focused. It stays blocked, and can't be removed until the timer below runs out.</p>
+    <p class="message" id="message" data-i18n="blkMessage">You blocked this to stay focused. It stays blocked, and can't be removed until the timer below runs out.</p>
 
     <div class="status">
-      <div class="status-label" id="statusLabel">Removable in</div>
+      <div class="status-label" id="statusLabel" data-i18n="blkRemovableIn">Removable in</div>
       <div class="status-time" id="statusTime" aria-live="off">—</div>
       <div class="progress" aria-hidden="true"><div class="bar" id="bar" style="width:0%"></div></div>
     </div>
 
-    <p class="hint" id="hint">You can make this block longer from the extension at any time. Removing it becomes possible when the timer ends.</p>
+    <p class="hint" id="hint" data-i18n="blkHint">You can make this block longer from the extension at any time. Removing it becomes possible when the timer ends.</p>
     <a class="go" id="goLink" hidden></a>
   </main>
-  <script src="blocked.js"></script>
+  <script type="module" src="blocked.js"></script>
 </body>
 </html>

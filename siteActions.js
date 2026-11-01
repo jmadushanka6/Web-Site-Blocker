@@ -17,12 +17,12 @@ import {
   isValidExtension,
   computeNewLock,
   computeExtendedLockUntil,
-  formatRemaining,
   DEFAULT_DURATION_MS,
   DURATION_OPTIONS,
   EXTEND_OPTIONS,
 } from "./lockModel.js";
 import { getBlocklist, setBlocklist } from "./storage.js";
+import { t, remainingText } from "./i18n.js";
 import { syncRules, hasSiteAccess } from "./rules.js";
 import { reloadTabsOn, getTab, getActiveTab, reloadTab } from "./tabs.js";
 import { getUnseenOffPeriods, acknowledgeOffPeriods } from "./offTracker.js";
@@ -47,16 +47,16 @@ export async function listSites() {
 
 export async function addSite(rawInput, durationMs) {
   const domain = normalizeDomain(rawInput);
-  if (!domain) return { ok: false, error: "Invalid link. Try something like facebook.com" };
+  if (!domain) return { ok: false, error: t("errInvalid") };
   if (isBroadSuffix(domain)) {
-    return { ok: false, error: domain + " is a domain ending shared by many sites. Enter a specific site, like bbc.co.uk." };
+    return { ok: false, error: t("errPublicSuffix", domain) };
   }
   const dur = isValidDuration(durationMs) ? durationMs : DEFAULT_DURATION_MS;
   const list = await getBlocklist();
   const existing = list.find((e) => e.domain === domain);
   if (existing) {
     if (isLocked(existing)) {
-      return { ok: false, error: domain + " is already blocked." };
+      return { ok: false, error: t("errAlready", domain) };
     }
     // Already in the list but its timer had run out — treat this as a re-lock.
     Object.assign(existing, computeNewLock(dur));
@@ -78,14 +78,14 @@ export async function addSite(rawInput, durationMs) {
 export async function removeSite(domain) {
   const list = await getBlocklist();
   const entry = list.find((e) => e.domain === domain);
-  if (!entry) return { ok: false, error: "Not found." };
+  if (!entry) return { ok: false, error: t("errNotFound") };
   if (isLocked(entry)) {
     const remaining = entry.lockUntil - Date.now();
     return {
       ok: false,
       locked: true,
       remainingMs: remaining,
-      error: "Locked. You can remove this in " + formatRemaining(remaining) + ".",
+      error: t("errLocked", remainingText(remaining)),
     };
   }
   await setBlocklist(list.filter((e) => e.domain !== domain));
@@ -99,17 +99,17 @@ export async function removeSite(domain) {
 // the dropdown to options that satisfy this, so this check is the
 // server-side backstop against a stale UI ever sending a bad value.
 export async function extendSite(domain, durationMs) {
-  if (!isValidExtendDuration(durationMs)) return { ok: false, error: "Pick a valid duration." };
+  if (!isValidExtendDuration(durationMs)) return { ok: false, error: t("errDuration") };
   const list = await getBlocklist();
   const entry = list.find((e) => e.domain === domain);
-  if (!entry) return { ok: false, error: "Not found." };
+  if (!entry) return { ok: false, error: t("errNotFound") };
   if (!isLocked(entry)) {
-    return { ok: false, error: 'This site is already unlocked — use "Block again" instead.' };
+    return { ok: false, error: t("errAlreadyUnlocked") };
   }
   if (!isValidExtension(entry, durationMs)) {
     return {
       ok: false,
-      error: "You can only extend to a longer lock than what's left — pick a bigger option.",
+      error: t("errShorter"),
     };
   }
   entry.lockUntil = computeExtendedLockUntil(durationMs);
@@ -122,12 +122,12 @@ export async function extendSite(domain, durationMs) {
 // timer with a freshly chosen duration. The site was never actually
 // unblocked, so this simply re-establishes the "can't remove" guarantee.
 export async function relockSite(domain, durationMs) {
-  if (!isValidDuration(durationMs)) return { ok: false, error: "Pick a valid duration." };
+  if (!isValidDuration(durationMs)) return { ok: false, error: t("errDuration") };
   const list = await getBlocklist();
   const entry = list.find((e) => e.domain === domain);
-  if (!entry) return { ok: false, error: "Not found." };
+  if (!entry) return { ok: false, error: t("errNotFound") };
   if (isLocked(entry)) {
-    return { ok: false, error: 'This site is still locked — use "Extend" instead.' };
+    return { ok: false, error: t("errStillLocked") };
   }
   Object.assign(entry, computeNewLock(durationMs));
   await setBlocklist(list);
@@ -150,9 +150,9 @@ export async function tabSiteStatus(tabId) {
 // when Chrome hides the tab's URL (a right-click passes the page's URL).
 export async function blockTab(tabId, durationMs, pageUrl) {
   const tab = await getTab(tabId);
-  if (!tab) return { ok: false, error: "That tab isn't open any more." };
+  if (!tab) return { ok: false, error: t("errTabGone") };
   const domain = siteFromUrl(tab.url || pageUrl);
-  if (!domain) return { ok: false, error: "This page isn't a website that can be blocked." };
+  if (!domain) return { ok: false, error: t("errNotWebsite") };
   const list = await getBlocklist();
   const cover = findLockedCover(list, domain);
   if (cover) {
@@ -178,8 +178,8 @@ export async function quickBlockTab(tab, durationMs, pageUrl) {
   const target = tab && tab.id >= 0 ? tab : await getActiveTab();
   const r = target
     ? await blockTab(target.id, durationMs, pageUrl)
-    : { ok: false, error: "There's no tab to block." };
-  if (!r.ok) await flashBadge("×", "#ff7a7a", "Couldn't block: " + r.error, refreshBadge);
+    : { ok: false, error: t("errNoTab") };
+  if (!r.ok) await flashBadge("×", "#ff7a7a", t("badgeCouldnt", r.error), refreshBadge);
   return r;
 }
 

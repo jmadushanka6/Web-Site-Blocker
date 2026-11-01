@@ -5,12 +5,13 @@
 // popup open to show the error in). It doesn't decide WHEN to show either;
 // callers tell it.
 
-const TITLE = "Locked Site Blocker";
+import { t } from "./i18n.js";
+
 const ATTENTION = {
   text: "!",
   color: "#f5b545",
   // Chrome already shows the extension's name above this in the hover card.
-  title: "It was switched off for a while. Click to see when.",
+  titleKey: "badgeAttention",
 };
 
 let flashTimer = null;
@@ -24,8 +25,8 @@ async function paint(text, color, title) {
 
 export async function showAttention(on) {
   if (flashTimer) return; // a flash is on screen; it restores the badge when it ends
-  if (on) await paint(ATTENTION.text, ATTENTION.color, ATTENTION.title);
-  else await paint("", null, TITLE);
+  if (on) await paint(ATTENTION.text, ATTENTION.color, t(ATTENTION.titleKey));
+  else await paint("", null, t("appName"));
 }
 
 // Show `text` for a few seconds (hovering the icon shows `title`), then call

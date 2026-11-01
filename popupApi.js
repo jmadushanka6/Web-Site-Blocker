@@ -9,7 +9,7 @@
 // developer-oriented hint in the console: during development, Chrome keeps
 // running the OLD service worker until the extension is reloaded from
 // chrome://extensions, so messages can come back unrecognized or not at all.
-const RETRY_HINT = "Close this popup and open it again.";
+import { t } from "./i18n.js";
 
 // Storage key the background keeps the "it was switched off" log under
 // (see offTracker.js).
@@ -24,10 +24,10 @@ function send(msg) {
           chrome.runtime.lastError.message,
           "— if you just edited the files, reload the extension from chrome://extensions."
         );
-        resolve({ ok: false, error: "Couldn't reach the extension. " + RETRY_HINT });
+        resolve({ ok: false, error: t("errUnreachable") });
         return;
       }
-      resolve(response || { ok: false, error: "The extension didn't respond. " + RETRY_HINT });
+      resolve(response || { ok: false, error: t("errNoResponse") });
     });
   });
 }

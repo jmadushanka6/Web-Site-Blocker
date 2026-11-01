@@ -5,7 +5,7 @@
 //   npx playwright install chromium
 //   npm run test:e2e               # or: node e2e/extension.e2e.cjs [section...]
 //
-// Sections: popup, blocked, parsing, fallback, quickblock, offnotice
+// Sections: popup, blocked, parsing, fallback, quickblock, offnotice, german
 // (default: all of them). Set HEADED=1 to watch the browser. Takes about
 // three minutes, mostly waiting for real timers (the popup's 15-second
 // refresh, a lock expiring, the switched-off check's grace period).
@@ -55,6 +55,10 @@ function buildExtension({ restricted = false } = {}) {
   for (const f of fs.readdirSync(path.join(ROOT, "icons")).filter((f) => f.endsWith(".png"))) {
     fs.copyFileSync(path.join(ROOT, "icons", f), path.join(dir, "icons", f));
   }
+  for (const lang of fs.readdirSync(path.join(ROOT, "_locales"))) {
+    fs.mkdirSync(path.join(dir, "_locales", lang), { recursive: true });
+    fs.copyFileSync(path.join(ROOT, "_locales", lang, "messages.json"), path.join(dir, "_locales", lang, "messages.json"));
+  }
   if (restricted) {
     const manifestPath = path.join(dir, "manifest.json");
     const m = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
@@ -67,11 +71,14 @@ function buildExtension({ restricted = false } = {}) {
 
 // `profile` reuses a browser profile (to restart the browser); `args` are
 // extra command-line switches.
-async function launch(extDir, { profile = tempDir("lsb-profile-"), args = [] } = {}) {
+async function launch(extDir, { profile = tempDir("lsb-profile-"), args = [], lang = null } = {}) {
   const context = await chromium.launchPersistentContext(profile, {
     channel: "chromium",
     headless: !process.env.HEADED,
-    args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`, ...args],
+    args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`, ...args, ...(lang ? [`--lang=${lang}`] : [])],
+    // Chromium on Linux takes its UI language (the one extensions get their
+    // messages in) from LANGUAGE; --lang covers the other platforms.
+    ...(lang ? { locale: lang, env: { ...process.env, LANGUAGE: lang, LANG: lang + ".UTF-8" } } : {}),
   });
   let [sw] = context.serviceWorkers();
   if (!sw) sw = await context.waitForEvent("serviceworker");
@@ -392,6 +399,38 @@ async function quickBlockSection() {
   }
 }
 
+async function germanSection() {
+  console.log("\n== German");
+  const { context, sw, id, errors } = await launch(buildExtension(), { lang: "de" });
+  check("Chrome gives the extension German", (await sw.evaluate(() => chrome.i18n.getMessage("block"))) === "Sperren");
+  const popup = await openPopup(context, id, errors);
+  check("popup header in German", (await popup.textContent(".sub")).startsWith("Sperrt eine Website"));
+  check("button in German", (await popup.textContent("#addBtn")) === "Sperren");
+  check("placeholder in German", (await popup.getAttribute("#url", "placeholder")) === "z. B. facebook.com");
+  check("lock lengths in German", (await popup.textContent("#addDur option")) === "24 Stunden");
+  check("page language is German", (await popup.getAttribute("html", "lang")) === "de");
+  check("empty list in German", (await popup.textContent("li.empty")).startsWith("Noch keine Websites"));
+  check("block example.org", (await addSite(popup, "example.org", 7 * DAY)) === "Gesperrt.");
+  await popup.waitForSelector("li.item .badge.locked");
+  const badge = (await popup.textContent("li.item .badge")).trim();
+  check("countdown in German", /^🔒 noch 7 Tg\. 0 Std\.$/.test(badge), badge);
+  check("count in German", (await popup.textContent("#count")) === "1 Website");
+  check("extend button in German", (await popup.textContent("li.item .btn-action")) === "Verlängern");
+  const err = await addSite(popup, "example.org", DAY);
+  check("error from the background in German", err === "example.org ist bereits gesperrt.", err);
+
+  const page = await context.newPage();
+  page.on("pageerror", (e) => errors.push("blocked: " + e.message));
+  await page.goto("https://example.org/").catch(() => {});
+  await page.waitForFunction(() => document.querySelector("#title").textContent !== "");
+  check("blocked page in German", (await page.textContent("#title")) === "Diese Website ist gesperrt");
+  check("blocked page countdown in German", /Tg\. \d+ Std\. \d+ Min\.$/.test(await page.textContent("#statusTime")));
+  check("blocked tab title in German", (await page.title()) === "example.org ist gesperrt");
+
+  check("no page errors", errors.length === 0, errors.join(" | "));
+  await context.close();
+}
+
 async function offNoticeSection() {
   console.log("\n== switched-off notice");
   const extDir = buildExtension();
@@ -456,6 +495,7 @@ async function offNoticeSection() {
     if (want("fallback")) await fallbackSection();
     if (want("quickblock")) await quickBlockSection();
     if (want("offnotice")) await offNoticeSection();
+    if (want("german")) await germanSection();
   } finally {
     for (const dir of tempDirs) fs.rmSync(dir, { recursive: true, force: true });
   }

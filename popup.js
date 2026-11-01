@@ -4,6 +4,10 @@
 // only coordinates the two.
 import { api } from "./popupApi.js";
 import { buildItem, buildEmptyState, populateSelect, buildQuickAdd, buildOffNotice } from "./popupRender.js";
+import { t, applyI18n } from "./i18n.js";
+import { setUpAsk } from "./popupAsk.js";
+
+applyI18n();
 
 const urlInput = document.getElementById("url");
 const addDur = document.getElementById("addDur");
@@ -35,24 +39,24 @@ function showMsg(text, kind) {
 }
 
 function renderCount(n) {
-  countEl.textContent = n ? `${n} site${n === 1 ? "" : "s"}` : "";
+  countEl.textContent = n ? (n === 1 ? t("countOne") : t("countMany", n)) : "";
 }
 
 async function handleExtend(domain, durationMs) {
   const r = await api.extend(domain, durationMs);
-  if (r.ok) { showMsg(domain + " extended.", "ok"); render(); }
+  if (r.ok) { showMsg(t("msgExtended", domain), "ok"); render(); }
   else showMsg(r.error, "err");
 }
 
 async function handleRelock(domain, durationMs) {
   const r = await api.relock(domain, durationMs);
-  if (r.ok) { showMsg(domain + " locked again.", "ok"); render(); }
+  if (r.ok) { showMsg(t("msgRelocked", domain), "ok"); render(); }
   else showMsg(r.error, "err");
 }
 
 async function handleRemove(domain) {
   const r = await api.remove(domain);
-  if (r.ok) { showMsg(domain + " removed.", "ok"); render(); }
+  if (r.ok) { showMsg(t("msgRemoved", domain), "ok"); render(); }
   else showMsg(r.error, "err");
 }
 
@@ -96,7 +100,7 @@ async function refreshQuickAdd() {
 async function handleQuickBlock() {
   const r = await api.blockTab(activeTabId, Number(addDur.value) || undefined);
   if (r.ok) {
-    showMsg(r.domain + " blocked.", "ok");
+    showMsg(t("msgBlockedSite", r.domain), "ok");
     quickDomain = null;
     renderQuickAdd();
     render();
@@ -112,7 +116,7 @@ async function render() {
   const seq = ++renderSeq;
   const res = await api.list();
   if (seq !== renderSeq) return; // a newer render is already on its way
-  if (!res.ok) { showMsg(res.error || "Something went wrong.", "err"); return; }
+  if (!res.ok) { showMsg(res.error || t("errGeneric"), "err"); return; }
   durationOptions = res.durations || durationOptions;
   extendOptions = res.extendOptions || extendOptions;
   if (!addDur.options.length) populateSelect(addDur, durationOptions);
@@ -128,6 +132,7 @@ async function render() {
 
   renderCount(list.length);
   updateIncognitoNotice(list.length);
+  ask.update(list.length, !!(res.offPeriods && res.offPeriods.length) || !incognitoEl.hidden);
   // Restricted site access: those sites fall back to a plain block page.
   accessNoticeEl.hidden = !list.some((e) => e.siteAccess === false);
 
@@ -163,7 +168,7 @@ async function add() {
   if (!val) return;
   const durationMs = Number(addDur.value) || undefined;
   const r = await api.add(val, durationMs);
-  if (r.ok) { showMsg("Blocked.", "ok"); urlInput.value = ""; render(); refreshQuickAdd(); }
+  if (r.ok) { showMsg(t("msgBlocked"), "ok"); urlInput.value = ""; render(); refreshQuickAdd(); }
   else showMsg(r.error, "err");
   urlInput.focus();
 }
@@ -211,13 +216,15 @@ addBtn.addEventListener("click", add);
 urlInput.addEventListener("keydown", (e) => { if (e.key === "Enter") add(); });
 addDur.addEventListener("change", renderQuickAdd); // keep the one-click button's duration in step
 
+const ask = setUpAsk();
+
 checkIncognitoAccess();
 (async () => {
   await render(); // also fills the lock-length dropdown the one-click button uses
   activeTabId = await api.activeTabId();
   await refreshQuickAdd();
   const shortcut = await api.blockShortcut();
-  if (shortcut) tipEl.textContent = `Tip: right-click any page → Block this site, or press ${shortcut}.`;
+  if (shortcut) tipEl.textContent = t("tipShortcut", shortcut);
 })();
 
 // Show the "it was switched off" notice the moment the background logs one

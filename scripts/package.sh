@@ -9,6 +9,6 @@ out="dist/locked-site-blocker-$version.zip"
 
 mkdir -p dist
 rm -f "$out"
-zip -q -X "$out" manifest.json *.html *.js icons/*.png
+zip -q -X "$out" manifest.json *.html *.js icons/*.png _locales/*/messages.json
 echo "Built $out:"
 unzip -l "$out"

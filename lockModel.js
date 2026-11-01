@@ -123,12 +123,20 @@ export function isValidExtension(entry, durationMs, now = Date.now()) {
   return now + durationMs > entry.lockUntil;
 }
 
+// Time left on a lock, rounded UP to the minute and split into days, hours
+// and minutes. The user-facing wording ("1d 2h", "1 Tg. 2 Std.") is built
+// from these in i18n.js; formatRemaining below is the plain English form.
+export function remainingParts(ms) {
+  const totalMin = ms > 0 ? Math.ceil(ms / 60000) : 0;
+  return {
+    d: Math.floor(totalMin / 1440),
+    h: Math.floor((totalMin % 1440) / 60),
+    m: totalMin % 60,
+  };
+}
+
 export function formatRemaining(ms) {
-  if (!(ms > 0)) return "0m";
-  const totalMin = Math.ceil(ms / 60000);
-  const d = Math.floor(totalMin / 1440);
-  const h = Math.floor((totalMin % 1440) / 60);
-  const m = totalMin % 60;
+  const { d, h, m } = remainingParts(ms);
   if (d > 0) return d + "d " + h + "h";
   if (h > 0) return h + "h " + m + "m";
   return m + "m";

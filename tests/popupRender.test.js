@@ -2,6 +2,7 @@
 // browser's own format, so the checks accept both "10:02" and "10:02 AM".
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import "./i18nStub.js";
 import { dayPhrase, fmtRange, fmtDuration, describeOffPeriods } from "../popupRender.js";
 
 const MIN = 60 * 1000;

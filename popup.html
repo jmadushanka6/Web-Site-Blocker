@@ -154,6 +154,8 @@
     color: var(--accent-2); font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
   }
   .btn-link:hover { text-decoration: underline; }
+  .btn-link[hidden] { display: none; }
+  .notice.ask { border-color: rgba(91, 140, 255, 0.35); }
   .btn-dismiss {
     border: none; background: none; padding: 1px 5px; border-radius: 5px;
     color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer;
@@ -230,6 +232,8 @@
   footer { margin-top: 12px; text-align: center; }
   footer p { font-size: 10px; color: var(--muted); margin: 0; }
   footer p + p { margin-top: 3px; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent-2); }
 </style>
 </head>
 <body>
@@ -238,42 +242,50 @@
   <header>
     <div class="logo" aria-hidden="true">🔒</div>
     <div>
-      <h1>Locked Site Blocker</h1>
-      <p class="sub">Blocks a site + all subdomains until its timer runs out.</p>
+      <h1 data-i18n="appName">Locked Site Blocker</h1>
+      <p class="sub" data-i18n="popupSub">Blocks a site + all subdomains until its timer runs out.</p>
     </div>
   </header>
 
   <div class="add-card">
     <div id="quickAdd" hidden></div>
-    <label for="url" class="sr-only">Site to block</label>
-    <input id="url" type="text" placeholder="e.g. facebook.com" autocomplete="off" spellcheck="false" autofocus>
+    <label for="url" class="sr-only" data-i18n="labelSite">Site to block</label>
+    <input id="url" type="text" placeholder="e.g. facebook.com" data-i18n-placeholder="placeholderSite" autocomplete="off" spellcheck="false" autofocus>
     <div class="add-row2">
-      <label for="addDur" class="sr-only">Lock length</label>
+      <label for="addDur" class="sr-only" data-i18n="labelLength">Lock length</label>
       <select id="addDur"></select>
-      <button class="btn-primary" id="addBtn">Block</button>
+      <button class="btn-primary" id="addBtn" data-i18n="block">Block</button>
     </div>
   </div>
   <div id="msg" role="status" aria-live="polite"></div>
 
   <div class="notice" id="incognito" hidden>
-    <span>Blocks don't apply in Incognito windows.</span>
-    <button class="btn-link" id="incognitoOpen">Allow in Incognito</button>
-    <button class="btn-dismiss" id="incognitoDismiss" aria-label="Dismiss this notice">×</button>
+    <span data-i18n="incognitoText">Blocks don't apply in Incognito windows.</span>
+    <button class="btn-link" id="incognitoOpen" data-i18n="incognitoAllow">Allow in Incognito</button>
+    <button class="btn-dismiss" id="incognitoDismiss" aria-label="Dismiss this notice" data-i18n-aria-label="dismissNotice">×</button>
   </div>
 
   <div class="notice warn" id="accessNotice" hidden>
-    <span>Site access is limited, so marked sites show Chrome's plain block page. To see the countdown, allow the extension on all sites from Chrome's puzzle menu.</span>
+    <span data-i18n="accessNotice">Site access is limited, so marked sites show Chrome's plain block page. To see the countdown, allow the extension on all sites from Chrome's puzzle menu.</span>
+  </div>
+
+  <div class="notice ask" id="ask" hidden>
+    <span data-i18n="askText">Is the blocker helping you stay focused?</span>
+    <button class="btn-link" id="askRate" hidden data-i18n="askRate">Rate it</button>
+    <button class="btn-link" id="askSupport" hidden data-i18n="askSupport">Support it</button>
+    <button class="btn-dismiss" id="askDismiss" aria-label="Dismiss this notice" data-i18n-aria-label="dismissNotice">×</button>
   </div>
 
   <div class="list-head">
-    <h2 id="listTitle">Blocked sites</h2>
+    <h2 id="listTitle" data-i18n="listTitle">Blocked sites</h2>
     <span id="count"></span>
   </div>
   <ul id="list" aria-labelledby="listTitle"></ul>
 
   <footer>
-    <p>Extending only ever adds time — never removes it.</p>
-    <p id="tip">Tip: right-click any page → Block this site.</p>
+    <p data-i18n="footerExtend">Extending only ever adds time — never removes it.</p>
+    <p id="tip" data-i18n="tipDefault">Tip: right-click any page → Block this site.</p>
+    <p><a href="#" id="supportLink" hidden data-i18n="supportLink">☕ Support this free extension</a></p>
   </footer>
 
   <script type="module" src="popup.js"></script>

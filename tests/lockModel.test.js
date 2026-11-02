@@ -9,6 +9,8 @@ import {
   isLocked,
   normalizeDomain,
   isBroadSuffix,
+  siteFromUrl,
+  findLockedCover,
   migrateEntry,
   computeNewLock,
   computeExtendedLockUntil,
@@ -59,6 +61,35 @@ test("isBroadSuffix flags country domain endings, not real sites", () => {
   for (const s of ["bbc.co.uk", "facebook.com", "co.com", "github.io", "example.de"]) {
     assert.equal(isBroadSuffix(s), false, s);
   }
+});
+
+test("siteFromUrl takes the site from an ordinary web page's URL", () => {
+  assert.equal(siteFromUrl("https://www.youtube.com/watch?v=x"), "youtube.com");
+  assert.equal(siteFromUrl("http://m.facebook.com/home"), "m.facebook.com");
+  assert.equal(siteFromUrl("HTTPS://WWW.Reddit.COM/r/x"), "reddit.com");
+  assert.equal(siteFromUrl("https://münchen.de/"), "xn--mnchen-3ya.de");
+});
+
+test("siteFromUrl ignores pages that aren't websites", () => {
+  const rejected = [
+    undefined, null, "", "chrome://extensions", "chrome://newtab/", "about:blank",
+    "chrome-extension://abcdefghijklmnop/blocked.html?d=x.com", "file:///Users/me/a.html",
+    "http://localhost:8080/", "https://192.168.1.1/",
+  ];
+  for (const url of rejected) assert.equal(siteFromUrl(url), null, JSON.stringify(url));
+});
+
+test("findLockedCover finds the lock that already covers a site or its parent", () => {
+  const list = [
+    { domain: "facebook.com", addedAt: NOW - HOUR, lockUntil: NOW + HOUR }, // locked
+    { domain: "reddit.com", addedAt: NOW - 2 * DAY, lockUntil: NOW - HOUR }, // ran out
+  ];
+  assert.equal(findLockedCover(list, "facebook.com", NOW).domain, "facebook.com");
+  assert.equal(findLockedCover(list, "m.facebook.com", NOW).domain, "facebook.com");
+  assert.equal(findLockedCover(list, "notfacebook.com", NOW), null); // not a subdomain
+  assert.equal(findLockedCover(list, "reddit.com", NOW), null); // an expired lock doesn't count
+  assert.equal(findLockedCover(list, "old.reddit.com", NOW), null);
+  assert.equal(findLockedCover(list, null, NOW), null);
 });
 
 test("only the preset durations are accepted", () => {

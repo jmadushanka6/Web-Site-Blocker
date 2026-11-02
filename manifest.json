@@ -1,12 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Locked Site Blocker",
-  "version": "1.3.0",
-  "description": "Block distracting sites and their subdomains behind a timer lock. Extend it anytime; remove a site only after its timer runs out.",
-  "minimum_chrome_version": "101",
+  "name": "__MSG_extName__",
+  "version": "1.5.0",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
+  "minimum_chrome_version": "102",
   "permissions": [
     "declarativeNetRequest",
-    "storage"
+    "storage",
+    "contextMenus",
+    "alarms"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -17,12 +20,20 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Locked Site Blocker",
+    "default_title": "__MSG_appName__",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
+    }
+  },
+  "commands": {
+    "block-current-site": {
+      "suggested_key": {
+        "default": "Alt+Shift+L"
+      },
+      "description": "__MSG_cmdBlock__"
     }
   },
   "icons": {
@@ -33,8 +44,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["blocked.html"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "blocked.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

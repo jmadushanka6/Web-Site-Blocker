@@ -1,0 +1,629 @@
+{
+  "extName": {
+    "message": "Locked Site Blocker",
+    "description": "Extension name as shown in the store (max 75 characters)."
+  },
+  "extDescription": {
+    "message": "Block distracting sites and their subdomains behind a timer lock. Extend it anytime; remove a site only after its timer runs out.",
+    "description": "Store summary (max 132 characters)."
+  },
+  "appName": {
+    "message": "Locked Site Blocker",
+    "description": "Short name in the popup header and toolbar tooltip."
+  },
+  "cmdBlock": {
+    "message": "Block the site you're on (locked for 24 hours)",
+    "description": "Keyboard shortcut description."
+  },
+  "dateLocale": {
+    "message": "en-GB",
+    "description": "BCP 47 locale used to format dates in this language."
+  },
+  "dur_24h": {
+    "message": "24 hours"
+  },
+  "dur_48h": {
+    "message": "48 hours"
+  },
+  "dur_7d": {
+    "message": "7 days"
+  },
+  "dur_30d": {
+    "message": "30 days"
+  },
+  "menuBlock": {
+    "message": "Block this site"
+  },
+  "menuFor": {
+    "message": "For $P1$",
+    "description": "$1 is a lock length, e.g. 24 hours.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "remDH": {
+    "message": "$P1$d $P2$h",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "remHM": {
+    "message": "$P1$h $P2$m",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "remM": {
+    "message": "$P1$m",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "timeLeft": {
+    "message": "🔒 $P1$ left",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popupSub": {
+    "message": "Blocks a site + all subdomains until its timer runs out."
+  },
+  "labelSite": {
+    "message": "Site to block"
+  },
+  "placeholderSite": {
+    "message": "e.g. facebook.com"
+  },
+  "labelLength": {
+    "message": "Lock length"
+  },
+  "block": {
+    "message": "Block"
+  },
+  "incognitoText": {
+    "message": "Blocks don't apply in Incognito windows."
+  },
+  "incognitoAllow": {
+    "message": "Allow in Incognito"
+  },
+  "dismissNotice": {
+    "message": "Dismiss this notice"
+  },
+  "accessNotice": {
+    "message": "Site access is limited, so marked sites show Chrome's plain block page. To see the countdown, allow the extension on all sites from Chrome's puzzle menu."
+  },
+  "listTitle": {
+    "message": "Blocked sites"
+  },
+  "footerExtend": {
+    "message": "Extending only ever adds time — never removes it."
+  },
+  "tipDefault": {
+    "message": "Tip: right-click any page → Block this site."
+  },
+  "tipShortcut": {
+    "message": "Tip: right-click any page → Block this site, or press $P1$.",
+    "description": "$1 is a keyboard shortcut, e.g. Alt+Shift+L.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "emptyState": {
+    "message": "No sites blocked yet — add one above to get started."
+  },
+  "countOne": {
+    "message": "1 site"
+  },
+  "countMany": {
+    "message": "$P1$ sites",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "unlocked": {
+    "message": "✓ Unlocked"
+  },
+  "ariaProgress": {
+    "message": "Lock progress for $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaNewLength": {
+    "message": "New lock length for $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaLength": {
+    "message": "Lock length for $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "extend": {
+    "message": "Extend"
+  },
+  "blockAgain": {
+    "message": "Block again"
+  },
+  "ariaExtend": {
+    "message": "Extend $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaBlockAgain": {
+    "message": "Block again $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "maxed": {
+    "message": "Already at the longest available lock"
+  },
+  "remove": {
+    "message": "Remove"
+  },
+  "ariaRemove": {
+    "message": "Remove $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "plainBlockNote": {
+    "message": "Shows Chrome's plain block page"
+  },
+  "quickAria": {
+    "message": "Block $P1$ for $P2$",
+    "description": "$1 is a site, $2 a lock length.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "quickBlock": {
+    "message": "Block $P1$",
+    "description": "$1 is the site's name, shown in bold.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "orType": {
+    "message": "or type a site"
+  },
+  "msgBlocked": {
+    "message": "Blocked."
+  },
+  "msgBlockedSite": {
+    "message": "$P1$ blocked.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgExtended": {
+    "message": "$P1$ extended.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgRelocked": {
+    "message": "$P1$ locked again.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgRemoved": {
+    "message": "$P1$ removed.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "errGeneric": {
+    "message": "Something went wrong."
+  },
+  "errUnreachable": {
+    "message": "Couldn't reach the extension. Close this popup and open it again."
+  },
+  "errNoResponse": {
+    "message": "The extension didn't respond. Close this popup and open it again."
+  },
+  "askText": {
+    "message": "Is the blocker helping you stay focused?"
+  },
+  "askRate": {
+    "message": "Rate it"
+  },
+  "askSupport": {
+    "message": "Support it"
+  },
+  "supportLink": {
+    "message": "☕ Support this free extension"
+  },
+  "today": {
+    "message": "today"
+  },
+  "yesterday": {
+    "message": "yesterday"
+  },
+  "onDate": {
+    "message": "on $P1$",
+    "description": "$1 is a short date, e.g. Mon 26 Oct.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "rangeSameDay": {
+    "message": "$P1$ to $P2$ $P3$",
+    "description": "$1 start time, $2 end time, $3 day (today / yesterday / on <date>).",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "rangeTwoDays": {
+    "message": "$P1$ $P2$ to $P3$ $P4$",
+    "description": "$1 start time, $2 its day, $3 end time, $4 its day.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      },
+      "p4": {
+        "content": "$4"
+      }
+    }
+  },
+  "spanFrom": {
+    "message": "from about $P1$",
+    "description": "$1 is a time range (rangeSameDay / rangeTwoDays).",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "spanAround": {
+    "message": "around $P1$ $P2$",
+    "description": "$1 time, $2 day.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "spanUntil": {
+    "message": "until $P1$ $P2$",
+    "description": "$1 time, $2 day.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "durLess": {
+    "message": "less than a minute"
+  },
+  "durDay1": {
+    "message": "1 day"
+  },
+  "durDays": {
+    "message": "$P1$ days",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "durHr": {
+    "message": "$P1$ hr",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "durMin": {
+    "message": "$P1$ min",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "offTitle1": {
+    "message": "The blocker was switched off"
+  },
+  "offTitle2": {
+    "message": "The blocker was switched off twice"
+  },
+  "offTitleN": {
+    "message": "The blocker was switched off $P1$ times",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "offBody1": {
+    "message": "It was off $P1$$P2$, so your blocked sites could be opened during that time.",
+    "description": "$1 when (spanFrom / spanAround / spanUntil), $2 the length in brackets with a leading space, or nothing.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "offTotalAbout": {
+    "message": "About $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "offTotalLess": {
+    "message": "Less than a minute"
+  },
+  "offBodyN": {
+    "message": "$P1$ off in total — most recently $P2$. Your blocked sites could be opened while it was off.",
+    "description": "$1 total time (offTotalAbout / offTotalLess), $2 when.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "gotIt": {
+    "message": "Got it"
+  },
+  "errInvalid": {
+    "message": "Invalid link. Try something like facebook.com"
+  },
+  "errPublicSuffix": {
+    "message": "$P1$ is a domain ending shared by many sites. Enter a specific site, like bbc.co.uk.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "errAlready": {
+    "message": "$P1$ is already blocked.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "errNotFound": {
+    "message": "Not found."
+  },
+  "errLocked": {
+    "message": "Locked. You can remove this in $P1$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "errDuration": {
+    "message": "Pick a valid duration."
+  },
+  "errAlreadyUnlocked": {
+    "message": "This site is already unlocked — use \"Block again\" instead."
+  },
+  "errShorter": {
+    "message": "You can only extend to a longer lock than what's left — pick a bigger option."
+  },
+  "errStillLocked": {
+    "message": "This site is still locked — use \"Extend\" instead."
+  },
+  "errTabGone": {
+    "message": "That tab isn't open any more."
+  },
+  "errNotWebsite": {
+    "message": "This page isn't a website that can be blocked."
+  },
+  "errNoTab": {
+    "message": "There's no tab to block."
+  },
+  "badgeCouldnt": {
+    "message": "Couldn't block: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "badgeAttention": {
+    "message": "It was switched off for a while. Click to see when."
+  },
+  "pageBlockedTitle": {
+    "message": "Site blocked"
+  },
+  "thisSite": {
+    "message": "this site"
+  },
+  "blkTabTitle": {
+    "message": "$P1$ is blocked",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkTitle": {
+    "message": "This site is blocked"
+  },
+  "blkRemovableIn": {
+    "message": "Removable in"
+  },
+  "blkMessage": {
+    "message": "You blocked this to stay focused. It stays blocked, and can't be removed until the timer below runs out."
+  },
+  "blkHint": {
+    "message": "You can make this block longer from the extension at any time. Removing it becomes possible when the timer ends."
+  },
+  "blkExpiredTitle": {
+    "message": "This block has expired"
+  },
+  "blkStatus": {
+    "message": "Status"
+  },
+  "blkRemovableNow": {
+    "message": "Removable now"
+  },
+  "blkExpiredMessage": {
+    "message": "$P1$ is still blocked, but its timer has run out.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkExpiredHint": {
+    "message": "Open the extension to remove it or block it again."
+  },
+  "blkRemovedTitle": {
+    "message": "No longer blocked"
+  },
+  "blkNotBlocked": {
+    "message": "Not blocked"
+  },
+  "blkRemovedMessage": {
+    "message": "$P1$ was removed from your block list.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkGoTo": {
+    "message": "Go to $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "cdD": {
+    "message": "$P1$d $P2$h $P3$m",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "cdH": {
+    "message": "$P1$h $P2$m $P3$s",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "cdM": {
+    "message": "$P1$m $P2$s",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "cdS": {
+    "message": "$P1$s",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  }
+}

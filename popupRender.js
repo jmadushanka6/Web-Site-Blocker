@@ -4,14 +4,14 @@
 // worker; callers pass in the callbacks to run when a button is clicked
 // (Dependency Inversion: this module depends on a small callback
 // "interface", not on the concrete popupApi module).
-import { formatRemaining } from "./lockModel.js";
+import { t, dateLocale, durationLabel, remainingText } from "./i18n.js";
 
 export function populateSelect(sel, options) {
   sel.innerHTML = "";
   for (const o of options) {
     const opt = document.createElement("option");
     opt.value = o.ms;
-    opt.textContent = o.label;
+    opt.textContent = durationLabel(o);
     sel.appendChild(opt);
   }
 }
@@ -19,7 +19,7 @@ export function populateSelect(sel, options) {
 export function buildEmptyState() {
   const li = document.createElement("li");
   li.className = "empty";
-  li.textContent = "No sites blocked yet — add one above to get started.";
+  li.textContent = t("emptyState");
   return li;
 }
 
@@ -65,7 +65,7 @@ export function buildItem(entry, now, options, callbacks) {
   dom.textContent = entry.domain;
   const badge = document.createElement("span");
   badge.className = "badge " + (locked ? "locked" : "unlocked");
-  badge.textContent = "✓ Unlocked";
+  badge.textContent = t("unlocked");
   top.appendChild(dom);
   top.appendChild(badge);
   li.appendChild(top);
@@ -76,7 +76,7 @@ export function buildItem(entry, now, options, callbacks) {
     track = document.createElement("div");
     track.className = "progress";
     track.setAttribute("role", "progressbar");
-    track.setAttribute("aria-label", "Lock progress for " + entry.domain);
+    track.setAttribute("aria-label", t("ariaProgress", entry.domain));
     track.setAttribute("aria-valuemin", "0");
     track.setAttribute("aria-valuemax", "100");
     bar = document.createElement("div");
@@ -94,14 +94,14 @@ export function buildItem(entry, now, options, callbacks) {
   if (choices.length > 0) {
     sel = document.createElement("select");
     sel.className = "dur";
-    sel.setAttribute("aria-label", (locked ? "New lock length for " : "Lock length for ") + entry.domain);
+    sel.setAttribute("aria-label", t(locked ? "ariaNewLength" : "ariaLength", entry.domain));
     populateSelect(sel, choices);
     shownChoices = choiceKey(choices);
 
     const actBtn = document.createElement("button");
     actBtn.className = "btn-action";
-    actBtn.textContent = locked ? "Extend" : "Block again";
-    actBtn.setAttribute("aria-label", (locked ? "Extend " : "Block again ") + entry.domain);
+    actBtn.textContent = t(locked ? "extend" : "blockAgain");
+    actBtn.setAttribute("aria-label", t(locked ? "ariaExtend" : "ariaBlockAgain", entry.domain));
     actBtn.addEventListener("click", () => {
       const durationMs = Number(sel.value);
       if (locked) callbacks.onExtend(entry.domain, durationMs);
@@ -115,7 +115,7 @@ export function buildItem(entry, now, options, callbacks) {
     // as a defensive fallback.
     const note = document.createElement("span");
     note.className = "maxed";
-    note.textContent = "Already at the longest available lock";
+    note.textContent = t("maxed");
     actions.appendChild(note);
   }
 
@@ -124,8 +124,8 @@ export function buildItem(entry, now, options, callbacks) {
   if (!locked) {
     const rm = document.createElement("button");
     rm.className = "btn-remove";
-    rm.textContent = "Remove";
-    rm.setAttribute("aria-label", "Remove " + entry.domain);
+    rm.textContent = t("remove");
+    rm.setAttribute("aria-label", t("ariaRemove", entry.domain));
     rm.addEventListener("click", () => callbacks.onRemove(entry.domain));
     actions.appendChild(rm);
   }
@@ -137,7 +137,7 @@ export function buildItem(entry, now, options, callbacks) {
   if (entry.siteAccess === false) {
     const note = document.createElement("p");
     note.className = "note";
-    note.textContent = "Shows Chrome's plain block page";
+    note.textContent = t("plainBlockNote");
     li.appendChild(note);
   }
 
@@ -146,7 +146,7 @@ export function buildItem(entry, now, options, callbacks) {
     const remaining = entry.lockUntil - nowMs;
     if (remaining <= 0) return false; // the lock just ran out: rebuild
 
-    badge.textContent = "🔒 " + formatRemaining(remaining) + " left";
+    badge.textContent = t("timeLeft", remainingText(remaining));
     const pct = elapsedPercent(entry, remaining);
     bar.style.width = pct + "%";
     track.setAttribute("aria-valuenow", String(Math.round(pct)));
@@ -167,4 +167,149 @@ export function buildItem(entry, now, options, callbacks) {
 
   refresh(now);
   return { el: li, refresh };
+}
+
+// One-click "Block <site in this tab>" button, plus the divider above the
+// text field. durationLabel mirrors the lock-length dropdown it shares.
+export function buildQuickAdd(domain, durationText, onBlock) {
+  const frag = document.createDocumentFragment();
+
+  const btn = document.createElement("button");
+  btn.className = "quick-add";
+  btn.setAttribute("aria-label", t("quickAria", domain, durationText));
+  const icon = document.createElement("span");
+  icon.className = "qa-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = "＋";
+  const text = document.createElement("span");
+  text.className = "qa-text";
+  const name = document.createElement("b");
+  name.textContent = domain;
+  // The site's name sits in bold inside a translated sentence ("Block x" /
+  // "x sperren"), so split the sentence around it.
+  const [before, after = ""] = t("quickBlock", "\uE000").split("\uE000");
+  text.append(before, name, after);
+  const dur = document.createElement("span");
+  dur.className = "qa-dur";
+  dur.textContent = durationText;
+  btn.append(icon, text, dur);
+  btn.addEventListener("click", () => {
+    btn.disabled = true; // one block per click, even on a double-click
+    onBlock();
+  });
+
+  const or = document.createElement("div");
+  or.className = "or";
+  or.setAttribute("aria-hidden", "true");
+  or.textContent = t("orType");
+
+  frag.append(btn, or);
+  return frag;
+}
+
+// ---------------------------------------------------------------------------
+// "The blocker was switched off" notice. The wording helpers are pure (no
+// DOM), so they're unit-tested directly (tests/popupRender.test.js).
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function startOfDay(ts) {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function timeLabel(ts) {
+  return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+// "today", "yesterday" or "on Mon 26 Oct" ("heute", "gestern", "am Mo., 26. Okt.").
+export function dayPhrase(ts, now = Date.now()) {
+  const daysAgo = Math.round((startOfDay(now) - startOfDay(ts)) / DAY_MS);
+  if (daysAgo === 0) return t("today");
+  if (daysAgo === 1) return t("yesterday");
+  return t("onDate", new Date(ts).toLocaleDateString(dateLocale(), { weekday: "short", day: "numeric", month: "short" }));
+}
+
+// "10:02 to 10:40 today", or "22:15 yesterday to 08:10 today". (Other
+// languages may order the parts differently; see _locales.)
+export function fmtRange(from, to, now = Date.now()) {
+  if (startOfDay(from) === startOfDay(to)) {
+    return t("rangeSameDay", timeLabel(from), timeLabel(to), dayPhrase(to, now));
+  }
+  return t("rangeTwoDays", timeLabel(from), dayPhrase(from, now), timeLabel(to), dayPhrase(to, now));
+}
+
+// "less than a minute", "38 min", "2 hr 5 min", "1 day 3 hr".
+export function fmtDuration(ms) {
+  const totalMin = Math.round(Math.max(0, ms) / 60000);
+  if (totalMin < 1) return t("durLess");
+  const d = Math.floor(totalMin / 1440);
+  const h = Math.floor((totalMin % 1440) / 60);
+  const m = totalMin % 60;
+  if (d > 0) return (d === 1 ? t("durDay1") : t("durDays", d)) + (h ? " " + t("durHr", h) : "");
+  if (h > 0) return t("durHr", h) + (m ? " " + t("durMin", m) : "");
+  return t("durMin", m);
+}
+
+// When one off period happened: "from about 10:02 to 10:40 today",
+// "around 10:36 today" (started and ended in the same minute), or
+// "until 10:40 today" (start unknown).
+function spanPhrase(p, now) {
+  if (!p.offAt) return t("spanUntil", timeLabel(p.onAt), dayPhrase(p.onAt, now));
+  if (startOfDay(p.offAt) === startOfDay(p.onAt) && timeLabel(p.offAt) === timeLabel(p.onAt)) {
+    return t("spanAround", timeLabel(p.onAt), dayPhrase(p.onAt, now));
+  }
+  return t("spanFrom", fmtRange(p.offAt, p.onAt, now));
+}
+
+// periods: [{ offAt (ms, or null if unknown), onAt (ms) }], oldest first.
+export function describeOffPeriods(periods, now = Date.now()) {
+  const latest = periods[periods.length - 1];
+  const when = spanPhrase(latest, now);
+
+  if (periods.length === 1) {
+    const length = latest.offAt ? ` (${fmtDuration(latest.onAt - latest.offAt)})` : "";
+    return { title: t("offTitle1"), body: t("offBody1", when, length) };
+  }
+
+  const totalMs = periods.reduce((sum, p) => sum + (p.offAt ? Math.max(0, p.onAt - p.offAt) : 0), 0);
+  const totalText = Math.round(totalMs / 60000) < 1 ? t("offTotalLess") : t("offTotalAbout", fmtDuration(totalMs));
+  return {
+    title: periods.length === 2 ? t("offTitle2") : t("offTitleN", periods.length),
+    body: t("offBodyN", totalText, when),
+  };
+}
+
+export function buildOffNotice(periods, now, onDismiss) {
+  const { title, body } = describeOffPeriods(periods, now);
+
+  const box = document.createElement("div");
+  box.className = "off-notice";
+  box.setAttribute("role", "alert");
+
+  const icon = document.createElement("div");
+  icon.className = "on-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = "⚠️";
+
+  const content = document.createElement("div");
+  content.className = "on-content";
+  const head = document.createElement("p");
+  head.className = "on-title";
+  head.textContent = title;
+  const b = document.createElement("p");
+  b.className = "on-body";
+  b.textContent = body;
+  const btn = document.createElement("button");
+  btn.className = "on-dismiss";
+  btn.textContent = t("gotIt");
+  btn.addEventListener("click", () => {
+    btn.disabled = true;
+    onDismiss();
+  });
+  content.append(head, b, btn);
+
+  box.append(icon, content);
+  return box;
 }

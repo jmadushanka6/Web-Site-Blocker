@@ -31,7 +31,38 @@
     background: linear-gradient(180deg, #171a22, #12141a);
     color: var(--text);
     padding: 16px;
+    /* Chrome caps popups at 600px tall. Lay the popup out as a column that
+       never grows past that: everything keeps its natural size except the
+       site list, which gives up height (and scrolls) when notices or the
+       one-click button need the room. */
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
   }
+  body > * { flex: none; }
+
+  /* "The blocker was switched off" notice — always the first thing shown. */
+  .off-notice {
+    display: flex; gap: 10px;
+    background: rgba(245, 181, 69, 0.1);
+    border: 1px solid rgba(245, 181, 69, 0.4);
+    border-radius: 12px;
+    padding: 10px 11px 11px;
+    margin-bottom: 14px;
+    animation: fade-in 0.18s ease;
+  }
+  .off-notice .on-icon { font-size: 15px; line-height: 1.3; flex: none; }
+  .off-notice .on-content { min-width: 0; }
+  .off-notice .on-title { font-size: 12.5px; font-weight: 700; color: var(--warn); margin: 0 0 3px; }
+  .off-notice .on-body { font-size: 11.5px; line-height: 1.45; color: #d9dce3; margin: 0; }
+  .off-notice .on-dismiss {
+    margin-top: 8px; border: none; border-radius: 7px; padding: 5px 11px;
+    font-size: 11.5px; font-weight: 600; cursor: pointer;
+    background: rgba(245, 181, 69, 0.18); color: var(--warn);
+    transition: background 0.15s ease;
+  }
+  .off-notice .on-dismiss:hover { background: rgba(245, 181, 69, 0.3); }
+
   .sr-only {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
@@ -53,6 +84,29 @@
     border-radius: 12px;
     padding: 10px;
   }
+
+  /* One-click "Block <site in this tab>" */
+  .quick-add {
+    width: 100%; display: flex; align-items: center; gap: 8px;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer; text-align: left;
+    border: 1px solid rgba(91, 140, 255, 0.45);
+    background: rgba(91, 140, 255, 0.12);
+    color: var(--text); font-size: 12.5px;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+  .quick-add:hover { background: rgba(91, 140, 255, 0.22); }
+  .quick-add:active { transform: scale(0.98); }
+  .quick-add:disabled { opacity: 0.6; cursor: default; }
+  .quick-add .qa-icon { color: var(--accent-2); font-weight: 700; flex: none; }
+  .quick-add .qa-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .quick-add .qa-text b { color: var(--accent-2); }
+  .quick-add .qa-dur { font-size: 11px; color: var(--muted); white-space: nowrap; flex: none; }
+  .or {
+    display: flex; align-items: center; gap: 8px;
+    margin: 9px 0; font-size: 10.5px; color: var(--muted);
+  }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
   input[type="text"] {
     width: 100%; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border);
     background: var(--panel-2); color: var(--text); font-size: 13px; outline: none;
@@ -100,6 +154,8 @@
     color: var(--accent-2); font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
   }
   .btn-link:hover { text-decoration: underline; }
+  .btn-link[hidden] { display: none; }
+  .notice.ask { border-color: rgba(91, 140, 255, 0.35); }
   .btn-dismiss {
     border: none; background: none; padding: 1px 5px; border-radius: 5px;
     color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer;
@@ -114,6 +170,7 @@
   #count { font-size: 11px; color: var(--muted); }
 
   ul { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow-y: auto; }
+  body > ul { flex: 0 1 auto; min-height: 72px; }
   ul::-webkit-scrollbar { width: 6px; }
   ul::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
@@ -174,46 +231,61 @@
 
   footer { margin-top: 12px; text-align: center; }
   footer p { font-size: 10px; color: var(--muted); margin: 0; }
+  footer p + p { margin-top: 3px; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent-2); }
 </style>
 </head>
 <body>
+  <div id="offNotice"></div>
+
   <header>
     <div class="logo" aria-hidden="true">🔒</div>
     <div>
-      <h1>Locked Site Blocker</h1>
-      <p class="sub">Blocks a site + all subdomains until its timer runs out.</p>
+      <h1 data-i18n="appName">Locked Site Blocker</h1>
+      <p class="sub" data-i18n="popupSub">Blocks a site + all subdomains until its timer runs out.</p>
     </div>
   </header>
 
   <div class="add-card">
-    <label for="url" class="sr-only">Site to block</label>
-    <input id="url" type="text" placeholder="e.g. facebook.com" autocomplete="off" spellcheck="false" autofocus>
+    <div id="quickAdd" hidden></div>
+    <label for="url" class="sr-only" data-i18n="labelSite">Site to block</label>
+    <input id="url" type="text" placeholder="e.g. facebook.com" data-i18n-placeholder="placeholderSite" autocomplete="off" spellcheck="false" autofocus>
     <div class="add-row2">
-      <label for="addDur" class="sr-only">Lock length</label>
+      <label for="addDur" class="sr-only" data-i18n="labelLength">Lock length</label>
       <select id="addDur"></select>
-      <button class="btn-primary" id="addBtn">Block</button>
+      <button class="btn-primary" id="addBtn" data-i18n="block">Block</button>
     </div>
   </div>
   <div id="msg" role="status" aria-live="polite"></div>
 
   <div class="notice" id="incognito" hidden>
-    <span>Blocks don't apply in Incognito windows.</span>
-    <button class="btn-link" id="incognitoOpen">Allow in Incognito</button>
-    <button class="btn-dismiss" id="incognitoDismiss" aria-label="Dismiss this notice">×</button>
+    <span data-i18n="incognitoText">Blocks don't apply in Incognito windows.</span>
+    <button class="btn-link" id="incognitoOpen" data-i18n="incognitoAllow">Allow in Incognito</button>
+    <button class="btn-dismiss" id="incognitoDismiss" aria-label="Dismiss this notice" data-i18n-aria-label="dismissNotice">×</button>
   </div>
 
   <div class="notice warn" id="accessNotice" hidden>
-    <span>Site access is limited, so marked sites show Chrome's plain block page. To see the countdown, allow the extension on all sites from Chrome's puzzle menu.</span>
+    <span data-i18n="accessNotice">Site access is limited, so marked sites show Chrome's plain block page. To see the countdown, allow the extension on all sites from Chrome's puzzle menu.</span>
+  </div>
+
+  <div class="notice ask" id="ask" hidden>
+    <span data-i18n="askText">Is the blocker helping you stay focused?</span>
+    <button class="btn-link" id="askRate" hidden data-i18n="askRate">Rate it</button>
+    <button class="btn-link" id="askSupport" hidden data-i18n="askSupport">Support it</button>
+    <button class="btn-dismiss" id="askDismiss" aria-label="Dismiss this notice" data-i18n-aria-label="dismissNotice">×</button>
   </div>
 
   <div class="list-head">
-    <h2 id="listTitle">Blocked sites</h2>
+    <h2 id="listTitle" data-i18n="listTitle">Blocked sites</h2>
     <span id="count"></span>
   </div>
   <ul id="list" aria-labelledby="listTitle"></ul>
 
   <footer>
-    <p>Extending only ever adds time — never removes it.</p>
+    <p data-i18n="footerExtend">Extending only ever adds time — never removes it.</p>
+    <p id="tip" data-i18n="tipDefault">Tip: right-click any page → Block this site.</p>
+    <p><a href="#" id="supportLink" hidden data-i18n="supportLink">☕ Support this free extension</a></p>
   </footer>
 
   <script type="module" src="popup.js"></script>

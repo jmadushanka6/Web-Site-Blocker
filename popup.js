@@ -3,7 +3,11 @@
 // No messaging details and no DOM-building details live here — this file
 // only coordinates the two.
 import { api } from "./popupApi.js";
-import { buildItem, buildEmptyState, populateSelect } from "./popupRender.js";
+import { buildItem, buildEmptyState, populateSelect, buildQuickAdd, buildOffNotice } from "./popupRender.js";
+import { t, applyI18n } from "./i18n.js";
+import { setUpAsk } from "./popupAsk.js";
+
+applyI18n();
 
 const urlInput = document.getElementById("url");
 const addDur = document.getElementById("addDur");
@@ -13,6 +17,9 @@ const msgEl = document.getElementById("msg");
 const countEl = document.getElementById("count");
 const incognitoEl = document.getElementById("incognito");
 const accessNoticeEl = document.getElementById("accessNotice");
+const quickEl = document.getElementById("quickAdd");
+const tipEl = document.getElementById("tip");
+const offNoticeEl = document.getElementById("offNotice");
 
 let durationOptions = [];
 let extendOptions = [];
@@ -20,6 +27,9 @@ let msgTimer = null;
 let rows = []; // one { el, refresh(now) } per site currently on screen
 let renderSeq = 0; // only the newest render() is allowed to touch the DOM
 let incognitoBlocked = false; // true when blocks don't reach Incognito windows
+let activeTabId = null; // the tab the popup was opened over
+let quickDomain = null; // that tab's site, when it can be blocked in one click
+let offNoticeKey = ""; // what the "switched off" notice currently shows
 
 function showMsg(text, kind) {
   clearTimeout(msgTimer);
@@ -29,25 +39,75 @@ function showMsg(text, kind) {
 }
 
 function renderCount(n) {
-  countEl.textContent = n ? `${n} site${n === 1 ? "" : "s"}` : "";
+  countEl.textContent = n ? (n === 1 ? t("countOne") : t("countMany", n)) : "";
 }
 
 async function handleExtend(domain, durationMs) {
   const r = await api.extend(domain, durationMs);
-  if (r.ok) { showMsg(domain + " extended.", "ok"); render(); }
+  if (r.ok) { showMsg(t("msgExtended", domain), "ok"); render(); }
   else showMsg(r.error, "err");
 }
 
 async function handleRelock(domain, durationMs) {
   const r = await api.relock(domain, durationMs);
-  if (r.ok) { showMsg(domain + " locked again.", "ok"); render(); }
+  if (r.ok) { showMsg(t("msgRelocked", domain), "ok"); render(); }
   else showMsg(r.error, "err");
 }
 
 async function handleRemove(domain) {
   const r = await api.remove(domain);
-  if (r.ok) { showMsg(domain + " removed.", "ok"); render(); }
+  if (r.ok) { showMsg(t("msgRemoved", domain), "ok"); render(); }
   else showMsg(r.error, "err");
+}
+
+// Rebuilt only when what it says changes, so it isn't re-announced to
+// screen readers (or re-animated) on every list refresh.
+function renderOffNotice(periods) {
+  const key = JSON.stringify(periods || []);
+  if (key === offNoticeKey) return;
+  offNoticeKey = key;
+  offNoticeEl.innerHTML = "";
+  if (periods && periods.length) {
+    offNoticeEl.appendChild(buildOffNotice(periods, Date.now(), handleDismissOffNotice));
+  }
+}
+
+async function handleDismissOffNotice() {
+  const r = await api.dismissOffNotice();
+  if (r.ok) render();
+  else showMsg(r.error, "err");
+}
+
+function selectedDurationLabel() {
+  const opt = addDur.options[addDur.selectedIndex];
+  return opt ? opt.textContent : "";
+}
+
+function renderQuickAdd() {
+  quickEl.innerHTML = "";
+  quickEl.hidden = !quickDomain;
+  if (quickDomain) quickEl.appendChild(buildQuickAdd(quickDomain, selectedDurationLabel(), handleQuickBlock));
+}
+
+// Offer the one-click button only when the tab is a normal website that
+// isn't already locked.
+async function refreshQuickAdd() {
+  const r = activeTabId == null ? null : await api.tabSite(activeTabId);
+  quickDomain = r && r.ok && r.domain && !r.blockedBy ? r.domain : null;
+  renderQuickAdd();
+}
+
+async function handleQuickBlock() {
+  const r = await api.blockTab(activeTabId, Number(addDur.value) || undefined);
+  if (r.ok) {
+    showMsg(t("msgBlockedSite", r.domain), "ok");
+    quickDomain = null;
+    renderQuickAdd();
+    render();
+  } else {
+    showMsg(r.error, "err");
+    renderQuickAdd();
+  }
 }
 
 // Full rebuild of the list. Used on open and after every change; the
@@ -56,10 +116,11 @@ async function render() {
   const seq = ++renderSeq;
   const res = await api.list();
   if (seq !== renderSeq) return; // a newer render is already on its way
-  if (!res.ok) { showMsg(res.error || "Something went wrong.", "err"); return; }
+  if (!res.ok) { showMsg(res.error || t("errGeneric"), "err"); return; }
   durationOptions = res.durations || durationOptions;
   extendOptions = res.extendOptions || extendOptions;
   if (!addDur.options.length) populateSelect(addDur, durationOptions);
+  renderOffNotice(res.offPeriods);
 
   const now = Date.now();
   const list = (res.list || []).slice().sort((a, b) => {
@@ -71,6 +132,7 @@ async function render() {
 
   renderCount(list.length);
   updateIncognitoNotice(list.length);
+  ask.update(list.length, !!(res.offPeriods && res.offPeriods.length) || !incognitoEl.hidden);
   // Restricted site access: those sites fall back to a plain block page.
   accessNoticeEl.hidden = !list.some((e) => e.siteAccess === false);
 
@@ -106,7 +168,7 @@ async function add() {
   if (!val) return;
   const durationMs = Number(addDur.value) || undefined;
   const r = await api.add(val, durationMs);
-  if (r.ok) { showMsg("Blocked.", "ok"); urlInput.value = ""; render(); }
+  if (r.ok) { showMsg(t("msgBlocked"), "ok"); urlInput.value = ""; render(); refreshQuickAdd(); }
   else showMsg(r.error, "err");
   urlInput.focus();
 }
@@ -152,9 +214,22 @@ document.getElementById("incognitoDismiss").addEventListener("click", () => {
 
 addBtn.addEventListener("click", add);
 urlInput.addEventListener("keydown", (e) => { if (e.key === "Enter") add(); });
+addDur.addEventListener("change", renderQuickAdd); // keep the one-click button's duration in step
+
+const ask = setUpAsk();
 
 checkIncognitoAccess();
-render();
+(async () => {
+  await render(); // also fills the lock-length dropdown the one-click button uses
+  activeTabId = await api.activeTabId();
+  await refreshQuickAdd();
+  const shortcut = await api.blockShortcut();
+  if (shortcut) tipEl.textContent = t("tipShortcut", shortcut);
+})();
+
+// Show the "it was switched off" notice the moment the background logs one
+// (it can notice a moment after the popup opens).
+api.onOffLogChange(render);
 
 // Keep the countdowns live while the popup is open.
 setInterval(tick, 15000);

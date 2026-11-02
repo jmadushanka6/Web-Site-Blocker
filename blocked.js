@@ -13,9 +13,13 @@
 // The page has three states: locked (counting down), expired (still
 // blocked, but removable) and removed (no longer on the list at all).
 
+import { t, applyI18n } from "./i18n.js";
+
+applyI18n();
+
 const params = new URLSearchParams(location.search);
 const hasDomain = !!params.get("d");
-const domain = params.get("d") || "this site";
+const domain = params.get("d") || t("thisSite");
 let until = Number(params.get("until")) || 0;
 let added = Number(params.get("added")) || 0;
 
@@ -39,22 +43,20 @@ function fmt(ms) {
   const h = Math.floor((s % 86400) / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
-  if (d > 0) return `${d}d ${h}h ${m}m`;
-  if (h > 0) return `${h}h ${m}m ${sec}s`;
-  if (m > 0) return `${m}m ${sec}s`;
-  return `${sec}s`;
+  if (d > 0) return t("cdD", d, h, m);
+  if (h > 0) return t("cdH", h, m, sec);
+  if (m > 0) return t("cdM", m, sec);
+  return t("cdS", sec);
 }
 
 function renderLocked(remaining) {
-  document.title = domain + " is blocked";
+  document.title = t("blkTabTitle", domain);
   ringEl.textContent = "🔒";
-  titleEl.textContent = "This site is blocked";
+  titleEl.textContent = t("blkTitle");
   timeEl.classList.remove("ready");
-  labelEl.textContent = "Removable in";
-  messageEl.textContent =
-    "You blocked this to stay focused. It stays blocked, and can't be removed until the timer below runs out.";
-  hintEl.textContent =
-    "You can make this block longer from the extension at any time. Removing it becomes possible when the timer ends.";
+  labelEl.textContent = t("blkRemovableIn");
+  messageEl.textContent = t("blkMessage");
+  hintEl.textContent = t("blkHint");
   goLink.hidden = true;
   const total = until - added;
   const pct = total > 0 ? Math.min(100, Math.max(0, ((total - remaining) / total) * 100)) : 0;
@@ -63,32 +65,32 @@ function renderLocked(remaining) {
 }
 
 function renderExpired() {
-  document.title = domain + " is blocked";
+  document.title = t("blkTabTitle", domain);
   ringEl.textContent = "🔓";
-  titleEl.textContent = "This block has expired";
-  labelEl.textContent = "Status";
-  timeEl.textContent = "Removable now";
+  titleEl.textContent = t("blkExpiredTitle");
+  labelEl.textContent = t("blkStatus");
+  timeEl.textContent = t("blkRemovableNow");
   timeEl.classList.add("ready");
   barEl.style.width = "100%";
-  messageEl.textContent = domain + " is still blocked, but its timer has run out.";
-  hintEl.textContent = "Open the extension to remove it or block it again.";
+  messageEl.textContent = t("blkExpiredMessage", domain);
+  hintEl.textContent = t("blkExpiredHint");
   goLink.hidden = true;
 }
 
 function renderRemoved() {
   clearTimeout(tickHandle);
-  document.title = "No longer blocked";
+  document.title = t("blkRemovedTitle");
   ringEl.textContent = "🔓";
-  titleEl.textContent = "No longer blocked";
-  labelEl.textContent = "Status";
-  timeEl.textContent = "Not blocked";
+  titleEl.textContent = t("blkRemovedTitle");
+  labelEl.textContent = t("blkStatus");
+  timeEl.textContent = t("blkNotBlocked");
   timeEl.classList.add("ready");
   barEl.style.width = "100%";
-  messageEl.textContent = domain + " was removed from your block list.";
+  messageEl.textContent = t("blkRemovedMessage", domain);
   hintEl.textContent = "";
   if (hasDomain) {
     goLink.href = "https://" + domain + "/";
-    goLink.textContent = "Go to " + domain;
+    goLink.textContent = t("blkGoTo", domain);
     goLink.hidden = false;
   }
 }

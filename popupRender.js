@@ -18,6 +18,31 @@ export function populateSelect(sel, options, label = durationLabel) {
   }
 }
 
+// The padlock from the extension's icon, drawn in the badge's own colour.
+// (An emoji would look different on every system.)
+const SVG_NS = "http://www.w3.org/2000/svg";
+function lockIcon() {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("class", "lock-icon");
+  const shackle = document.createElementNS(SVG_NS, "path");
+  shackle.setAttribute("d", "M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10");
+  shackle.setAttribute("fill", "none");
+  shackle.setAttribute("stroke", "currentColor");
+  shackle.setAttribute("stroke-width", "2.6");
+  shackle.setAttribute("stroke-linecap", "round");
+  const body = document.createElementNS(SVG_NS, "rect");
+  body.setAttribute("x", "5");
+  body.setAttribute("y", "10");
+  body.setAttribute("width", "14");
+  body.setAttribute("height", "11");
+  body.setAttribute("rx", "2.5");
+  body.setAttribute("fill", "currentColor");
+  svg.append(shackle, body);
+  return svg;
+}
+
 // An Extend choice says where it would land: "7 days from now · Mon 9 Nov".
 export function extendLabel(option, now) {
   return t("extendOption", durationLabel(option), fmtDay(now + option.ms));
@@ -77,7 +102,9 @@ export function buildItem(entry, now, options, callbacks) {
   // it has run out the site is STILL blocked, so the badge says so plainly.
   const badge = document.createElement("span");
   badge.className = "badge " + (locked ? "locked" : "ended");
-  badge.textContent = t("badgeEnded");
+  const badgeText = document.createElement("span");
+  badgeText.textContent = t("badgeEnded");
+  badge.append(lockIcon(), badgeText);
   top.appendChild(dom);
   top.appendChild(badge);
   li.appendChild(top);
@@ -188,7 +215,7 @@ export function buildItem(entry, now, options, callbacks) {
     const remaining = entry.lockUntil - nowMs;
     if (remaining <= 0) return false; // the lock just ran out: rebuild
 
-    badge.textContent = t("badgeRemovableIn", remainingText(remaining));
+    badgeText.textContent = t("badgeRemovableIn", remainingText(remaining));
     const pct = elapsedPercent(entry, remaining);
     bar.style.width = pct + "%";
     track.setAttribute("aria-valuenow", String(Math.round(pct)));

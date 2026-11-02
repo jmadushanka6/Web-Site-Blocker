@@ -42,6 +42,26 @@ This tool discourages impulse browsing; it isn't tamper-proof security.
 - **Embedded content:** only full page loads are blocked. Content from a blocked site embedded in another page (say, a YouTube video on a news site) still loads.
 - **Bypasses:** turning the extension off gets around the lock for as long as it's off, though the popup reports it afterwards. Removing the extension (which deletes its record too), using another browser or Chrome profile, or moving the computer's clock forward get around it without a trace.
 
+## FAQ
+
+**I blocked the wrong site. What now?**
+Click **Undo** within 30 seconds: it's under the new block in the popup and on the site's countdown page. After that, the block can't be removed until its timer ends; that's the point of the extension. If you need the site before then (say you blocked google.com and need Gmail), the only way around it is removing the extension, which deletes your whole block list with it.
+
+**Can I unblock a site early?**
+No. While a timer runs you can only make it longer. When it ends, the site stays blocked until you remove it.
+
+**Can't I just switch the extension off?**
+Yes. Like any extension it can be switched off or removed in `chrome://extensions`, and while it's off nothing is blocked. It's built to stop impulse browsing, not to be impossible to remove. If you switch it off and on again, the popup tells you when, and for how long, it was off.
+
+**Does it block in Incognito windows, or on my phone?**
+In Incognito only if you allow it (`chrome://extensions` → Details → **Allow in Incognito**). On phones, no: Chrome on Android and iOS doesn't run extensions.
+
+**Does it see what I browse?**
+No. Your block list stays in your browser and the extension never reads the pages you visit. See [PRIVACY.md](PRIVACY.md).
+
+**Something doesn't work.**
+Open an issue at https://github.com/jmadushanka6/Web-Site-Blocker/issues.
+
 ## Rating and support prompt
 
 After a week of use, the popup asks once whether the blocker is helping, with a button to rate it in the store it was installed from (Chrome Web Store or Edge Add-ons) and, if `SUPPORT_URL` in `support.js` is set, one to support it. Answering or dismissing it hides it for good. Copies loaded from source have no store page, so they only show the support button (or nothing).

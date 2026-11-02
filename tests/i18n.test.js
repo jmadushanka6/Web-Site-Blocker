@@ -47,7 +47,7 @@ for (const lang of langs) {
       .join("\n");
     const used = new Set();
     for (const m of code.matchAll(/\bt\(\s*"([A-Za-z0-9_]+)"\s*[,)]/g)) used.add(m[1]);
-    // t(locked ? "extend" : "blockAgain", …)
+    // t(locked ? "extend" : "restartTimer", …)
     for (const m of code.matchAll(/\bt\([^"()]*\?\s*"(\w+)"\s*:\s*"(\w+)"/g)) used.add(m[1]).add(m[2]);
     for (const m of code.matchAll(/data-i18n(?:-[a-z-]+)?="([A-Za-z0-9_]+)"/g)) used.add(m[1]);
     for (const m of code.matchAll(/__MSG_([A-Za-z0-9_]+)__/g)) used.add(m[1]);

@@ -84,8 +84,7 @@ function fmt(ms) {
 
 function renderLocked(remaining) {
   document.title = t("blkTabTitle", domain);
-  ringEl.textContent = "🔒";
-  ringEl.classList.remove("quiet");
+  ringEl.classList.remove("open", "quiet");
   titleEl.textContent = t("blkTitle");
   timeEl.classList.remove("ready", "ended");
   labelEl.textContent = t("blkRemovableIn");
@@ -104,7 +103,7 @@ function renderLocked(remaining) {
 function renderExpired() {
   undoEl.hidden = true;
   document.title = t("blkTabTitle", domain);
-  ringEl.textContent = "🔒";
+  ringEl.classList.remove("open");
   ringEl.classList.add("quiet");
   titleEl.textContent = t("blkExpiredTitle");
   labelEl.textContent = t("blkTimer");
@@ -121,8 +120,8 @@ function renderRemoved() {
   clearTimeout(tickHandle);
   undoEl.hidden = true;
   document.title = t("blkRemovedTitle");
-  ringEl.textContent = "🔓";
   ringEl.classList.remove("quiet");
+  ringEl.classList.add("open");
   titleEl.textContent = t("blkRemovedTitle");
   labelEl.textContent = t("blkStatus");
   timeEl.textContent = t("blkNotBlocked");

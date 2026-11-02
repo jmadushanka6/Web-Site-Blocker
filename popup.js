@@ -35,6 +35,8 @@ let incognitoBlocked = false; // true when blocks don't reach Incognito windows
 let activeTabId = null; // the tab the popup was opened over
 let quickDomain = null; // that tab's site, when it can be blocked in one click
 let offNoticeKey = ""; // what the "switched off" notice currently shows
+// What the notices below the form depend on, as of the last render.
+let noticeState = { off: false, siteCount: 0, accessLimited: false };
 
 function showMsg(text, kind) {
   clearTimeout(msgTimer);
@@ -178,10 +180,13 @@ async function render() {
   });
 
   renderCount(list.length);
-  updateIncognitoNotice(list.length);
-  ask.update(list.length, !!(res.offPeriods && res.offPeriods.length) || !incognitoEl.hidden);
-  // Restricted site access: those sites fall back to a plain block page.
-  accessNoticeEl.hidden = !list.some((e) => e.siteAccess === false);
+  noticeState = {
+    off: !!(res.offPeriods && res.offPeriods.length),
+    siteCount: list.length,
+    // Restricted site access: those sites fall back to a plain block page.
+    accessLimited: list.some((e) => e.siteAccess === false),
+  };
+  updateNotices();
 
   const scrollTop = listEl.scrollTop; // keep the user's place in a long list
   listEl.innerHTML = "";
@@ -249,15 +254,22 @@ function incognitoDismissed() {
   }
 }
 
-function updateIncognitoNotice(siteCount) {
-  incognitoEl.hidden = !(incognitoBlocked && siteCount > 0 && !incognitoDismissed());
+// Chrome caps popups at 600px tall, so only the most important notice shows
+// at a time: switched off (at the very top), then Incognito, then limited
+// site access, then the rating prompt. Dismissing one lets the next through.
+function updateNotices() {
+  const { off, siteCount, accessLimited } = noticeState;
+  const incognito = incognitoBlocked && siteCount > 0 && !incognitoDismissed();
+  incognitoEl.hidden = off || !incognito;
+  accessNoticeEl.hidden = off || incognito || !accessLimited;
+  ask.update(siteCount, off || incognito || accessLimited);
 }
 
 function checkIncognitoAccess() {
   if (!(chrome.extension && chrome.extension.isAllowedIncognitoAccess)) return;
   chrome.extension.isAllowedIncognitoAccess((allowed) => {
     incognitoBlocked = !allowed;
-    updateIncognitoNotice(rows.length);
+    updateNotices();
   });
 }
 
@@ -272,7 +284,7 @@ document.getElementById("incognitoDismiss").addEventListener("click", () => {
   } catch {
     // Storage unavailable: the notice just comes back next time.
   }
-  incognitoEl.hidden = true;
+  updateNotices();
 });
 
 addBtn.addEventListener("click", add);

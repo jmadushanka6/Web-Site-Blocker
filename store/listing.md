@@ -17,9 +17,10 @@ and one set of timer words ("Removable in", "Timer ended", "Restart timer").
 - [ ] 2-Step Verification turned on for that Google account — required to publish.
 - [ ] Trader / non-trader status declared on the account page (EU consumer
       law). If you declare yourself a trader, your name, address, phone and
-      email are shown publicly on the listing. Decide before publishing; see
-      "Money" below.
+      email are shown publicly on the listing. Decide before publishing.
 - [ ] Contact line filled in at the bottom of both halves of `PRIVACY.md`.
+- [ ] Support email set on the dashboard. GitHub Issues needs an account, so
+      someone locked out of a site will otherwise write a review instead.
 - [ ] `SUPPORT_URL` in `support.js` set to your Ko-fi page, or left empty
       (then no support button or link appears at all).
 - [ ] This branch merged into `main`, so the privacy policy is live at its public URL.
@@ -206,10 +207,92 @@ store lists extensions separately.
 3. Availability: Public, all markets.
 4. Properties: Productivity; privacy policy URL as above; website and support
    URLs as above.
-5. Store listings: add **English** and **German** and paste the same
-   descriptions and screenshots as for Chrome.
+5. Store listings: add **English** and **German**, and paste the Edge
+   descriptions and search terms below, with the same screenshots. Don't reuse
+   the Chrome text: Edge's policies don't allow a listing to mention other
+   browsers anywhere, and Edge users need `edge://extensions` and InPrivate
+   rather than Chrome's Incognito.
 6. Submit. The rating button in the popup sends Edge users to the Edge listing
    automatically.
+
+### Edge listing text
+
+The name and summary come from the message files, as on Chrome; neither names
+a browser. Edge allows at most seven search terms.
+
+**English search terms:** website blocker · block websites · site blocker ·
+focus · productivity · procrastination · timer
+
+**English description** (plain text — paste as is):
+
+```
+Holds firm when you don't. Block a distracting site and pick a timer of up to 30 days: until it ends, the block can't be removed. You can only extend it.
+
+Against procrastination, for more focus: exam season, working from home, or less time on social media.
+
+HOW IT WORKS
+• Type or paste any link, such as facebook.com or https://twitter.com/home, pick a timer (24 hours, 48 hours, 7 days or 30 days) and click Block. The site and all of its subdomains are blocked straight away, including tabs you already have open.
+• Or block the site you're on without typing: right-click the page (or the extension's icon) and choose Block this site, or click the one-click button in the popup (Alt+Shift+L opens it).
+• Visiting a blocked site shows a calm countdown page instead.
+• While the timer runs, there's no Remove button at all. You can make the timer longer, never shorter.
+• When the timer ends, the site stays blocked until you remove it, or until you restart the timer for another stretch.
+• New blocks can be undone for 30 seconds, in case you picked the wrong site. Your first block, 30-day timers and sites like google.com get a quick review before they start.
+• Switch it off, and it tells you when and for how long: the popup shows when the blocker was off and your blocked sites could be opened.
+
+FREE FOR GOOD
+• Blocking and timers are free for good. If paid extras come later, nothing free will be taken away.
+
+PRIVATE BY DESIGN
+• Your block list is stored only in your browser. Nothing is collected, sent anywhere or shared.
+• No account, no ads, no tracking, no analytics. Open source.
+• The extension never reads the content of the pages you visit.
+
+GOOD TO KNOW
+• Available in English and German.
+• Edge doesn't run extensions in InPrivate windows unless you allow it. To block sites there too, open edge://extensions, choose Details for Locked Site Blocker and turn on "Allow in InPrivate". The extension reminds you about this.
+• If you limit the extension's site access, blocked sites stay blocked but show the browser's standard "blocked" page instead of the countdown.
+• Like any extension, it can be turned off or removed from edge://extensions. It's built to stop impulse browsing, not to be impossible to remove.
+
+WHY "ACCESS TO ALL WEBSITES"?
+The browser only lets an extension redirect a site it has access to, and you can block any site you like. Locked Site Blocker uses this access only to show its countdown page in place of the sites on your list.
+```
+
+**Deutsche Suchbegriffe:** Websites sperren · Webseiten blockieren · Seiten
+sperren · Fokus · Produktivität · Prokrastination · Timer
+
+**Deutsche Beschreibung** (reiner Text — so einfügen):
+
+```
+Hält stand, wenn du schwach wirst. Sperre eine ablenkende Website und wähle einen Timer bis zu 30 Tagen: Vorher lässt sich die Sperre nicht entfernen, nur der Timer verlängern.
+
+Gegen Prokrastination, für mehr Fokus: ideal für Lern- und Prüfungsphasen (Abi, Matura, Uni), fürs Homeoffice – oder wenn du weniger Zeit auf Social Media verbringen willst.
+
+SO FUNKTIONIERT ES
+• Link eintippen oder einfügen, z. B. instagram.com oder https://www.youtube.com, einen Timer wählen (24 Stunden, 48 Stunden, 7 Tage oder 30 Tage) und auf „Sperren“ klicken. Die Website und alle Subdomains sind sofort blockiert – auch in Tabs, die schon offen sind.
+• Oder sperre die Webseite, auf der du gerade bist, ohne zu tippen: Rechtsklick auf die Seite (oder das Erweiterungssymbol) → „Diese Website sperren“ oder den Ein-Klick-Button im Erweiterungsfenster nutzen (Alt+Umschalttaste+L öffnet es).
+• Rufst du eine gesperrte Website auf, siehst du stattdessen eine ruhige Countdown-Seite.
+• Solange der Timer läuft, gibt es keinen Entfernen-Button. Den Timer kannst du verlängern, aber nie verkürzen.
+• Ist der Timer abgelaufen, bleibt die Website gesperrt, bis du sie entfernst – oder du startest den Timer neu.
+• Neue Sperren lassen sich 30 Sekunden lang rückgängig machen, falls du die falsche Website erwischt hast. Deine erste Sperre, 30-Tage-Timer und Webseiten wie google.com zeigt dir die Erweiterung vorher noch einmal zur Kontrolle.
+• Schaltest du den Blocker aus und wieder ein, zeigt er dir, wann und wie lange er aus war und deine gesperrten Websites offen waren.
+
+FÜR IMMER KOSTENLOS
+• Sperren und Timer bleiben kostenlos. Falls später kostenpflichtige Extras dazukommen, fällt nichts Kostenloses weg.
+
+DATENSCHUTZ AUS PRINZIP
+• Deine Sperrliste wird nur in deinem Browser gespeichert. Es wird nichts erhoben, übertragen oder weitergegeben.
+• Kein Konto, keine Werbung, kein Tracking, keine Analyse. Open Source.
+• Die Erweiterung liest nie die Inhalte der Seiten, die du besuchst.
+
+GUT ZU WISSEN
+• Komplett auf Deutsch (und Englisch).
+• Edge führt Erweiterungen in InPrivate-Fenstern nur aus, wenn du es erlaubst. Damit Sperren auch dort gelten: edge://extensions öffnen, bei Locked Site Blocker auf „Details“ klicken und die Erweiterung im InPrivate-Modus zulassen. Die Erweiterung erinnert dich daran.
+• Wenn du den Websitezugriff der Erweiterung einschränkst, bleiben gesperrte Websites blockiert, zeigen aber die einfache Sperrseite des Browsers statt des Countdowns.
+• Wie jede Erweiterung lässt sie sich unter edge://extensions ausschalten oder entfernen. Sie soll spontanes Surfen verhindern, nicht unentfernbar sein.
+
+WARUM „ZUGRIFF AUF ALLE WEBSITES“?
+Der Browser erlaubt einer Erweiterung nur dann, eine Website umzuleiten, wenn sie Zugriff darauf hat – und du kannst jede beliebige Webseite sperren. Locked Site Blocker nutzt diesen Zugriff ausschließlich, um statt der Websites auf deiner Liste die Countdown-Seite anzuzeigen.
+```
 
 ## 7. After publishing
 

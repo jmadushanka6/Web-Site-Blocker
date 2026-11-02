@@ -47,9 +47,14 @@
     border-radius: 50%;
     background: linear-gradient(140deg, var(--accent), var(--accent-2));
     display: flex; align-items: center; justify-content: center;
-    font-size: 32px;
+    color: #fff;
     box-shadow: 0 10px 30px rgba(91,140,255,0.35);
   }
+  /* The padlock from the extension's icon: closed while the site is blocked
+     (timer running or ended), open once it's off the list. */
+  .lock-ring svg { width: 34px; height: 34px; }
+  .lock-ring .lock-open, .lock-ring.open .lock-closed { display: none; }
+  .lock-ring.open .lock-open { display: block; }
   /* Timer ended: still locked, but nothing is counting down any more. */
   .lock-ring.quiet { background: #3a4152; box-shadow: none; }
   h1 { font-size: 21px; margin: 0 0 6px; letter-spacing: 0.1px; }
@@ -68,7 +73,7 @@
     padding: 16px 18px;
     margin-bottom: 6px;
   }
-  .status-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 8px; }
+  .status-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 8px; }
   .status-time { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; font-variant-numeric: tabular-nums; }
   .status-time.ready { color: #34d399; }
   .status-time.ended { color: #c3c9d6; font-size: 17px; }
@@ -99,11 +104,19 @@
   .go:hover { background: var(--button-hover); }
   .go:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   .go[hidden] { display: none; }
+
+  /* Respect "reduce motion": no rising card or sliding bar. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
   <main class="card">
-    <div class="lock-ring" id="ring" aria-hidden="true">🔒</div>
+    <div class="lock-ring" id="ring" aria-hidden="true">
+      <svg class="lock-closed" viewBox="0 0 24 24"><path d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path fill="currentColor" fill-rule="evenodd" d="M7.5 10h9A2.5 2.5 0 0 1 19 12.5v6a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 18.5v-6A2.5 2.5 0 0 1 7.5 10Zm4.5 3.2a1.6 1.6 0 0 0-.8 3V18a.8.8 0 0 0 1.6 0v-1.8a1.6 1.6 0 0 0-.8-3Z"/></svg>
+      <svg class="lock-open" viewBox="0 0 24 24"><path d="M7.5 10V7.5a4.5 4.5 0 0 1 8.9-1" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path fill="currentColor" fill-rule="evenodd" d="M7.5 10h9A2.5 2.5 0 0 1 19 12.5v6a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 18.5v-6A2.5 2.5 0 0 1 7.5 10Zm4.5 3.2a1.6 1.6 0 0 0-.8 3V18a.8.8 0 0 0 1.6 0v-1.8a1.6 1.6 0 0 0-.8-3Z"/></svg>
+    </div>
     <h1 id="title" data-i18n="blkTitle">This site is blocked</h1>
     <div class="dom" id="dom"></div>
     <p class="message" id="message" data-i18n="blkMessage">You blocked this for a reason. You can remove it once the timer below runs out.</p>

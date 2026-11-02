@@ -371,7 +371,8 @@ async function blockedSection() {
   check("ended state shown live", true);
   const status = (await page.textContent("#statusTime")).trim();
   check("…saying when the timer ended", /^Ended · .*\d{1,2}:\d{2}/.test(status), status);
-  check("…with the lock still closed", (await page.textContent("#ring")) === "🔒" && (await page.getAttribute("#ring", "class")).includes("quiet"));
+  const ring = await page.getAttribute("#ring", "class");
+  check("…with the lock still closed", !ring.includes("open") && ring.includes("quiet") && (await page.isVisible("#ring .lock-closed")), ring);
   check("…and that the site stays blocked", (await page.textContent("#message")).trim() === "The site stays blocked until you remove it.");
   const hint2 = (await page.textContent("#hint")).trim();
   check("ended hint offers restarting the timer or removing the site", /restart the timer/i.test(hint2) && /remove/i.test(hint2), hint2);
@@ -381,6 +382,7 @@ async function blockedSection() {
   await popup.click("li.item .btn-remove");
   await page.waitForFunction(() => document.querySelector("#title").textContent === "No longer blocked");
   check("removed state shown live", true);
+  check("…with the lock open", await page.isVisible("#ring .lock-open"));
   check("go-to-site link points at the site", (await page.getAttribute("#goLink", "href")) === "https://example.org/");
   check("go-to-site link visible", await page.isVisible("#goLink"));
 
@@ -427,6 +429,8 @@ async function fallbackSection() {
   check("site is still blocked (ERR_BLOCKED_BY_CLIENT)", /ERR_BLOCKED_BY_CLIENT/.test(navError), navError.split("\n")[0]);
   await popup.reload();
   await popup.waitForSelector("li.item");
+  check("one notice at a time: Incognito first", (await popup.isVisible("#incognito")) && (await popup.isHidden("#accessNotice")));
+  await popup.click("#incognitoDismiss");
   check("popup explains limited site access once", await popup.isVisible("#accessNotice"));
   check("affected row is marked", (await popup.locator("li.item .note").count()) === 1);
   check("no page errors", errors.length === 0, errors.join(" | "));

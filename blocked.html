@@ -72,6 +72,19 @@
   .progress { height: 5px; background: rgba(255,255,255,0.08); border-radius: 100px; margin-top: 12px; overflow: hidden; }
   .progress .bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 1s linear; }
 
+  /* "Wrong site? Undo · 28 s" for 30 seconds after a new block */
+  .undo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; font-size: 13px; color: var(--muted); }
+  .undo[hidden] { display: none; }
+  .undo-btn {
+    padding: 7px 14px; border-radius: 9px; border: 1px solid var(--border); cursor: pointer;
+    background: rgba(255,255,255,0.06); color: var(--text);
+    font: inherit; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+  }
+  .undo-btn:hover { background: rgba(255,255,255,0.12); }
+  .undo-btn:disabled { opacity: 0.6; cursor: default; }
+  .undo-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .undo-btn[hidden] { display: none; }
+
   .hint { margin-top: 16px; font-size: 12px; color: var(--muted); line-height: 1.5; }
   .hint:empty { display: none; }
 
@@ -96,6 +109,11 @@
       <div class="status-label" id="statusLabel" data-i18n="blkRemovableIn">Removable in</div>
       <div class="status-time" id="statusTime" aria-live="off">—</div>
       <div class="progress" aria-hidden="true"><div class="bar" id="bar" style="width:0%"></div></div>
+    </div>
+
+    <div class="undo" id="undo" hidden>
+      <span id="undoAsk" data-i18n="undoAsk">Wrong site?</span>
+      <button class="undo-btn" id="undoBtn"></button>
     </div>
 
     <p class="hint" id="hint" data-i18n="blkHint">You can make this block longer from the extension at any time. Removing it becomes possible when the timer ends.</p>

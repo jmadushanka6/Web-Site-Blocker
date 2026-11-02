@@ -5,6 +5,18 @@
 // (Dependency Inversion: this module depends on a small callback
 // "interface", not on the concrete popupApi module).
 import { t, dateLocale, durationLabel, remainingText } from "./i18n.js";
+import { undoMsLeft } from "./lockModel.js";
+
+// "Tue 3 Nov, 11:40" / "Di., 3. Nov., 11:40": a moment a timer ends at.
+export function fmtDateTime(ts) {
+  return new Date(ts).toLocaleString(dateLocale(), {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export function populateSelect(sel, options) {
   sel.innerHTML = "";
@@ -43,15 +55,18 @@ function choiceKey(choices) {
   return choices.map((o) => o.ms).join(",");
 }
 
-// Builds one list row and returns { el, refresh(now) }.
+// Builds one list row and returns { el, refresh(now), refreshUndo(now) }.
 //
 // refresh() updates the countdown, the progress bar and the extend choices
 // in place, leaving whatever the user has picked in the dropdown alone. It
 // returns false when the row can't be updated in place (its lock has just
-// run out), telling the caller to rebuild the list.
+// run out), telling the caller to rebuild the list. refreshUndo() counts
+// down a new block's "Wrong site? Undo" line once a second and removes it
+// when its 30 seconds are over.
 //
 // options: { durationOptions, extendOptions }
-// callbacks: { onExtend(domain, durationMs), onRelock(domain, durationMs), onRemove(domain) }
+// callbacks: { onExtend(domain, durationMs), onRelock(domain, durationMs),
+//              onRemove(domain), onUndo(domain) }
 export function buildItem(entry, now, options, callbacks) {
   const locked = entry.lockUntil > now;
 
@@ -132,6 +147,25 @@ export function buildItem(entry, now, options, callbacks) {
 
   li.appendChild(actions);
 
+  // A block made moments ago can be taken back for 30 seconds.
+  let undoRow = null;
+  let undoBtn = null;
+  if (locked && callbacks.onUndo && undoMsLeft(entry, now) > 0) {
+    undoRow = document.createElement("div");
+    undoRow.className = "undo-row";
+    const ask = document.createElement("span");
+    ask.textContent = t("undoAsk");
+    undoBtn = document.createElement("button");
+    undoBtn.className = "btn-undo";
+    undoBtn.setAttribute("aria-label", t("ariaUndo", entry.domain));
+    undoBtn.addEventListener("click", () => {
+      undoBtn.disabled = true;
+      callbacks.onUndo(entry.domain);
+    });
+    undoRow.append(ask, undoBtn);
+    li.appendChild(undoRow);
+  }
+
   // The popup explains restricted site access once, above the list; each
   // affected row just carries this short marker.
   if (entry.siteAccess === false) {
@@ -139,6 +173,17 @@ export function buildItem(entry, now, options, callbacks) {
     note.className = "note";
     note.textContent = t("plainBlockNote");
     li.appendChild(note);
+  }
+
+  function refreshUndo(nowMs) {
+    if (!undoRow) return;
+    const left = undoMsLeft(entry, nowMs);
+    if (left <= 0) {
+      undoRow.remove();
+      undoRow = null;
+      return;
+    }
+    undoBtn.textContent = t("undoButton", Math.ceil(left / 1000));
   }
 
   function refresh(nowMs) {
@@ -166,7 +211,8 @@ export function buildItem(entry, now, options, callbacks) {
   }
 
   refresh(now);
-  return { el: li, refresh };
+  refreshUndo(now);
+  return { el: li, refresh, refreshUndo };
 }
 
 // One-click "Block <site in this tab>" button, plus the divider above the

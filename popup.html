@@ -130,6 +130,50 @@
   }
   .btn-primary:hover { background: var(--accent-strong-hover); }
   .btn-primary:active { transform: scale(0.97); }
+  .btn-ghost {
+    padding: 8px 14px; border: none; border-radius: 8px; background: transparent;
+    color: #c3c9d6; box-shadow: inset 0 0 0 1px var(--border);
+    font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .btn-ghost:hover { background: rgba(255, 255, 255, 0.06); }
+
+  /* Review: a second look at a new block before its timer starts. It takes
+     the add form's place; the list fades back until it's answered. */
+  .review {
+    margin-top: 14px; padding: 14px 13px 13px;
+    background: var(--panel); border: 1px solid rgba(122, 162, 255, 0.5);
+    border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    animation: fade-in 0.18s ease;
+  }
+  .review[hidden], .add-card[hidden] { display: none; }
+  .review-title { font-size: 15px; margin: 0; word-break: break-all; }
+  .seg {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;
+    margin: 12px 0 10px; padding: 3px; min-width: 0;
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px;
+  }
+  .seg-opt { position: relative; min-width: 0; }
+  .seg-opt input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+  .seg-opt span {
+    display: block; padding: 7px 2px; border-radius: 6px; text-align: center;
+    font-size: 12px; color: #c3c9d6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .seg-opt input:checked + span { background: var(--accent-strong); color: #fff; font-weight: 600; }
+  .seg-opt input:focus-visible + span { outline: 2px solid var(--accent-2); outline-offset: 1px; }
+  .review-body { font-size: 12.5px; line-height: 1.5; color: #c3c9d6; margin: 0 0 12px; }
+  ul.review-warn {
+    list-style: disc; max-height: none; overflow: visible;
+    margin: -2px 0 12px; padding: 8px 10px 8px 26px; border-radius: 9px;
+    background: rgba(245, 181, 69, 0.1); border: 1px solid rgba(245, 181, 69, 0.35);
+    font-size: 12px; line-height: 1.45; color: #f1d9a8;
+  }
+  ul.review-warn[hidden] { display: none; }
+  .review-actions { display: flex; gap: 8px; }
+  .review-actions .btn-primary { flex: 1; padding: 10px 12px; }
+  .review-actions .btn-ghost { padding: 10px 12px; }
+  .review-note { margin: 10px 0 0; font-size: 12px; line-height: 1.4; color: var(--muted); word-break: break-all; }
+  #list.dimmed { opacity: 0.35; }
 
   #msg {
     font-size: 11.5px; min-height: 0; margin: 0; padding: 0 2px;
@@ -214,6 +258,17 @@
   li.item.expired .btn-action { background: rgba(52, 211, 153, 0.18); color: var(--good); }
   li.item.expired .btn-action:hover { background: rgba(52, 211, 153, 0.26); }
 
+  /* "Wrong site? Undo · 28 s" under a block made moments ago */
+  .undo-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .btn-undo {
+    border: none; border-radius: 7px; padding: 5px 10px; cursor: pointer;
+    background: rgba(255, 255, 255, 0.07); color: var(--text);
+    font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .btn-undo:hover { background: rgba(255, 255, 255, 0.13); }
+  .btn-undo:disabled { opacity: 0.6; cursor: default; }
+
   .maxed { font-size: 10.5px; color: var(--muted); flex: 1; }
   .note { margin: 7px 0 0; font-size: 10.5px; line-height: 1.4; color: var(--muted); }
 
@@ -247,7 +302,7 @@
     </div>
   </header>
 
-  <div class="add-card">
+  <div class="add-card" id="addCard">
     <div id="quickAdd" hidden></div>
     <label for="url" class="sr-only" data-i18n="labelSite">Site to block</label>
     <input id="url" type="text" placeholder="e.g. facebook.com" data-i18n-placeholder="placeholderSite" autocomplete="off" spellcheck="false" autofocus>
@@ -257,6 +312,21 @@
       <button class="btn-primary" id="addBtn" data-i18n="block">Block</button>
     </div>
   </div>
+
+  <section class="review" id="review" role="dialog" aria-labelledby="reviewTitle" aria-describedby="reviewBody" hidden>
+    <h2 class="review-title" id="reviewTitle"></h2>
+    <fieldset class="seg" id="reviewDur">
+      <legend class="sr-only" data-i18n="labelLength">Lock length</legend>
+    </fieldset>
+    <p class="review-body" id="reviewBody"><span id="reviewWhen"></span> <span data-i18n="reviewNever">You can extend the timer, never shorten it.</span></p>
+    <ul class="review-warn" id="reviewWarn" hidden></ul>
+    <div class="review-actions">
+      <button class="btn-primary" id="reviewConfirm"></button>
+      <button class="btn-ghost" id="reviewCancel" data-i18n="reviewCancel">Cancel</button>
+    </div>
+    <p class="review-note" id="reviewNote"></p>
+  </section>
+
   <div id="msg" role="status" aria-live="polite"></div>
 
   <div class="notice" id="incognito" hidden>

@@ -5,8 +5,8 @@
 //   npx playwright install chromium
 //   npm run test:e2e               # or: node e2e/extension.e2e.cjs [section...]
 //
-// Sections: popup, blocked, parsing, fallback, quickblock, offnotice, german
-// (default: all of them). Set HEADED=1 to watch the browser. Takes about
+// Sections: popup, review, blocked, parsing, fallback, quickblock, offnotice,
+// german (default: all of them). Set HEADED=1 to watch the browser. Takes about
 // three minutes, mostly waiting for real timers (the popup's 15-second
 // refresh, a lock expiring, the switched-off check's grace period).
 // No network access is needed: blocked sites are redirected before any
@@ -97,11 +97,19 @@ async function openPopup(context, id, errors) {
   return popup;
 }
 
+// Types a site, picks a timer and clicks Block. If the review comes up (a
+// first block, 30 days, a typed page…), it's confirmed. Returns the popup's
+// message.
 async function addSite(popup, value, durationMs) {
   await popup.fill("#url", value);
   if (durationMs) await popup.selectOption("#addDur", String(durationMs));
   await popup.click("#addBtn");
-  await popup.waitForFunction(() => document.querySelector("#msg").classList.contains("show"));
+  await popup.waitForFunction(() =>
+    document.querySelector("#msg").classList.contains("show") || !document.querySelector("#review").hidden);
+  if (await popup.isVisible("#review")) {
+    await popup.click("#reviewConfirm");
+    await popup.waitForFunction(() => document.querySelector("#msg").classList.contains("show"));
+  }
   const text = (await popup.textContent("#msg")).trim();
   // Clear the message so the next check sees a fresh one.
   await popup.evaluate(() => { document.querySelector("#msg").className = ""; });
@@ -230,6 +238,105 @@ async function popupSection() {
   await context.close();
 }
 
+async function reviewSection() {
+  console.log("\n== review and undo");
+  const { context, sw, id, errors } = await launch(buildExtension());
+  const popup = await openPopup(context, id, errors);
+  const msg = async () => (await popup.textContent("#msg")).trim();
+  const openReview = async (value, durationMs) => {
+    await popup.fill("#url", value);
+    if (durationMs) await popup.selectOption("#addDur", String(durationMs));
+    await popup.click("#addBtn");
+    return popup.waitForSelector("#review:not([hidden])", { timeout: 3000 }).then(() => true, () => false);
+  };
+
+  // A first block is reviewed, starting on Cancel.
+  check("a first block opens the review", await openReview("youtube.com"));
+  check("review names the site", (await popup.textContent("#reviewTitle")) === "Block youtube.com?");
+  check("focus starts on Cancel", await popup.evaluate(() => document.activeElement.id === "reviewCancel"));
+  check("the add form steps aside", await popup.isHidden("#addCard"));
+  check("confirm names the timer", (await popup.textContent("#reviewConfirm")) === "Block for 24 hours");
+  const when = await popup.textContent("#reviewWhen");
+  check("says when it can first be removed", /^You can't remove it before \w{3} \d{1,2} \w{3}, \d{1,2}:\d{2}( [AP]M)?\. After that, /.test(when), when);
+  check("four timers to pick from", (await popup.locator("#reviewDur input").count()) === 4);
+  await popup.click(`#reviewDur input[value="${7 * DAY}"]`);
+  check("the button follows the timer picked", (await popup.textContent("#reviewConfirm")) === "Block for 7 days");
+  await popup.click("#reviewCancel");
+  check("Cancel closes the review", await popup.isHidden("#review"));
+  check("…blocks nothing", (await storage(sw)).length === 0);
+  check("…and brings the form back", await popup.isVisible("#addCard"));
+
+  // Confirmed with a timer picked in the review, then undone from the popup.
+  await popup.click("#addBtn"); // the field still says youtube.com
+  await popup.waitForSelector("#review:not([hidden])");
+  await popup.click(`#reviewDur input[value="${2 * DAY}"]`);
+  await popup.click("#reviewConfirm");
+  await popup.waitForFunction(() => document.querySelector("#msg").classList.contains("show"));
+  const yt = (await storage(sw)).find((e) => e.domain === "youtube.com");
+  check("blocked with the timer picked in the review", !!yt && yt.lockUntil - yt.addedAt === 2 * DAY, JSON.stringify(yt));
+  const undo = popup.locator("li.item", { hasText: "youtube.com" }).locator(".btn-undo");
+  await undo.waitFor();
+  const undoText = (await undo.textContent()).trim();
+  check("a new block offers Undo with the seconds left", /^Undo · (30|29|28|27) s$/.test(undoText), undoText);
+  await undo.click();
+  await popup.waitForFunction(() => /isn't blocked any more/.test(document.querySelector("#msg").textContent));
+  check("Undo removes the block", !(await storage(sw)).some((e) => e.domain === "youtube.com"));
+  check("…and its blocking rule", (await rules(sw)).length === 0);
+
+  // Once something is blocked, an everyday block starts straight away.
+  check("first block again reviewed and confirmed", (await addSite(popup, "example.org", DAY)) === "Blocked.");
+  await popup.fill("#url", "example.net");
+  await popup.click("#addBtn");
+  await popup.waitForFunction(() => document.querySelector("#msg").classList.contains("show"));
+  check("a later 24-hour block skips the review", (await popup.isHidden("#review")) && (await msg()) === "Blocked.");
+
+  // The 30-day timer, a typed page and google.com are reviewed.
+  check("the 30-day timer is reviewed", await openReview("example.com", 30 * DAY));
+  check("…for 30 days", (await popup.textContent("#reviewConfirm")) === "Block for 30 days");
+  check("…with no warning for an ordinary site", await popup.isHidden("#reviewWarn"));
+  await popup.click("#reviewCancel");
+  check("a typed page is reviewed", await openReview("reddit.com/r/politics", DAY));
+  check("…saying the whole site gets blocked", (await popup.textContent("#reviewWarn")).trim() === "This blocks all of reddit.com, not just /r/politics.");
+  await popup.click("#reviewCancel");
+  check("google.com is reviewed", await openReview("https://www.google.com/"));
+  check("…warning about Gmail and Google sign-in", /Gmail.*Google sign-in/.test(await popup.textContent("#reviewWarn")));
+  await popup.keyboard.press("Escape");
+  check("Escape cancels", await popup.isHidden("#review"));
+  const domains = (await storage(sw)).map((e) => e.domain).sort();
+  check("none of the cancelled sites were blocked", JSON.stringify(domains) === JSON.stringify(["example.net", "example.org"]), JSON.stringify(domains));
+
+  // The countdown page offers the same undo.
+  const page = await context.newPage();
+  page.on("pageerror", (e) => errors.push("blocked: " + e.message));
+  await page.goto("https://example.net/").catch(() => {});
+  await page.waitForSelector("#undo:not([hidden])");
+  const pageUndo = (await page.textContent("#undoBtn")).trim();
+  check("the countdown page offers Undo", /^Undo · \d+ s$/.test(pageUndo) && (await page.textContent("#undoAsk")) === "Wrong site?", pageUndo);
+  await page.click("#undoBtn");
+  await page.waitForFunction(() => document.querySelector("#title").textContent === "No longer blocked");
+  check("Undo on the countdown page unblocks the site", !(await storage(sw)).some((e) => e.domain === "example.net"));
+
+  // After 30 seconds there's no undo, and the background refuses one.
+  await sw.evaluate(async () => {
+    const { blocklist } = await chrome.storage.local.get("blocklist");
+    const e = blocklist.find((x) => x.domain === "example.org");
+    e.createdAt = e.addedAt = Date.now() - 31000;
+    await chrome.storage.local.set({ blocklist });
+  });
+  const late = await context.newPage();
+  late.on("pageerror", (e) => errors.push("blocked: " + e.message));
+  await late.goto("https://example.org/").catch(() => {});
+  await late.waitForFunction(() => document.querySelector("#title").textContent === "This site is blocked");
+  await sleep(500);
+  check("no Undo after 30 seconds", await late.isHidden("#undo"));
+  const refused = await popup.evaluate(() => chrome.runtime.sendMessage({ type: "undo", domain: "example.org" }));
+  check("the background refuses a late undo", refused && refused.ok === false && /Too late/.test(refused.error), JSON.stringify(refused));
+  check("…and the block stays", (await storage(sw)).some((e) => e.domain === "example.org"));
+
+  check("no page errors", errors.length === 0, errors.join(" | "));
+  await context.close();
+}
+
 async function blockedSection() {
   console.log("\n== blocked page");
   const { context, sw, id, errors } = await launch(buildExtension());
@@ -250,6 +357,7 @@ async function blockedSection() {
   const hint = (await page.textContent("#hint")).trim();
   check("locked hint offers extending, removal later", /longer/i.test(hint) && /timer ends/i.test(hint), hint);
   check("tab title names the site", (await page.title()).includes("example.org"));
+  check("a new block can be undone from the countdown page", await page.isVisible("#undo"));
 
   await sw.evaluate(async () => {
     const { blocklist } = await chrome.storage.local.get("blocklist");
@@ -332,8 +440,8 @@ async function quickBlockSection() {
       sw.evaluate((i) => new Promise((r) => chrome.contextMenus.update(i, {}, () => r(!chrome.runtime.lastError))), itemId);
     check("right-click menu on web pages", await eventually(() => menuItem("block-page::24h")));
     check("right-click menu on the toolbar icon", await menuItem("block-action::30d"));
-    const cmd = (await sw.evaluate(() => chrome.commands.getAll())).find((c) => c.name === "block-current-site");
-    check("Alt+Shift+L shortcut registered", !!cmd && cmd.shortcut === "Alt+Shift+L", JSON.stringify(cmd));
+    const cmd = (await sw.evaluate(() => chrome.commands.getAll())).find((c) => c.name === "_execute_action");
+    check("Alt+Shift+L opens the popup", !!cmd && cmd.shortcut === "Alt+Shift+L", JSON.stringify(cmd));
 
     const page = await context.newPage();
     await page.goto(site("quick.test", "/feed"));
@@ -348,6 +456,10 @@ async function quickBlockSection() {
     check("button follows the lock-length dropdown", (await quick.locator(".qa-dur").textContent()) === "48 hours");
 
     await quick.click();
+    await popup.waitForSelector("#review:not([hidden])");
+    check("a first one-click block is reviewed", (await popup.textContent("#reviewTitle")) === "Block quick.test?");
+    check("…with the timer from the dropdown", (await popup.textContent("#reviewConfirm")) === "Block for 48 hours");
+    await popup.click("#reviewConfirm");
     const moved = await page.waitForURL(/blocked\.html\?d=quick\.test/, { timeout: 5000 }).then(() => true, () => false);
     check("the tab switches to the blocked page straight away", moved, page.url());
     await popup.waitForFunction(() => document.querySelector("#msg").classList.contains("show"));
@@ -410,7 +522,21 @@ async function germanSection() {
   check("lock lengths in German", (await popup.textContent("#addDur option")) === "24 Stunden");
   check("page language is German", (await popup.getAttribute("html", "lang")) === "de");
   check("empty list in German", (await popup.textContent("li.empty")).startsWith("Noch keine Websites"));
-  check("block example.org", (await addSite(popup, "example.org", 7 * DAY)) === "Gesperrt.");
+  await popup.fill("#url", "example.org");
+  await popup.selectOption("#addDur", String(7 * DAY));
+  await popup.click("#addBtn");
+  await popup.waitForSelector("#review:not([hidden])");
+  check("review in German",
+    (await popup.textContent("#reviewTitle")) === "example.org sperren?" &&
+    (await popup.textContent("#reviewConfirm")) === "Für 7 Tage sperren" &&
+    (await popup.textContent("#reviewCancel")) === "Abbrechen");
+  const when = await popup.textContent("#reviewWhen");
+  check("review date in German", /^Entfernen kannst du die Sperre frühestens am .+, \d{2}:\d{2}\. Danach /.test(when), when);
+  await popup.click("#reviewConfirm");
+  await popup.waitForFunction(() => document.querySelector("#msg").classList.contains("show"));
+  check("block example.org", (await popup.textContent("#msg")).trim() === "Gesperrt.");
+  await popup.waitForSelector("li.item .btn-undo");
+  check("undo in German", /^Rückgängig · \d+ s$/.test((await popup.textContent("li.item .btn-undo")).trim()));
   await popup.waitForSelector("li.item .badge.locked");
   const badge = (await popup.textContent("li.item .badge")).trim();
   check("countdown in German", /^🔒 noch 7 Tg\. 0 Std\.$/.test(badge), badge);
@@ -490,6 +616,7 @@ async function offNoticeSection() {
 (async () => {
   try {
     if (want("popup")) await popupSection();
+    if (want("review")) await reviewSection();
     if (want("blocked")) await blockedSection();
     if (want("parsing")) await parsingSection();
     if (want("fallback")) await fallbackSection();

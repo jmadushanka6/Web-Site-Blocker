@@ -35,6 +35,7 @@ function send(msg) {
 export const api = {
   list: () => send({ type: "list" }),
   add: (value, durationMs) => send({ type: "add", value, durationMs }),
+  undo: (domain) => send({ type: "undo", domain }),
   remove: (domain) => send({ type: "remove", domain }),
   extend: (domain, durationMs) => send({ type: "extend", domain, durationMs }),
   relock: (domain, durationMs) => send({ type: "relock", domain, durationMs }),
@@ -60,12 +61,12 @@ export const api = {
     }
   },
 
-  // The keyboard shortcut currently assigned to "block the site I'm on"
-  // (users can change it at chrome://extensions/shortcuts), or "".
-  blockShortcut: async () => {
+  // The keyboard shortcut that opens this popup (users can change it at
+  // chrome://extensions/shortcuts), or "".
+  popupShortcut: async () => {
     try {
       const commands = await chrome.commands.getAll();
-      const cmd = commands.find((c) => c.name === "block-current-site");
+      const cmd = commands.find((c) => c.name === "_execute_action");
       return (cmd && cmd.shortcut) || "";
     } catch {
       return "";

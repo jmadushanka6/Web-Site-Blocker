@@ -16,6 +16,8 @@ import {
   isValidExtendDuration,
   isValidExtension,
   computeNewLock,
+  newEntry,
+  canUndo,
   computeExtendedLockUntil,
   DEFAULT_DURATION_MS,
   DURATION_OPTIONS,
@@ -61,7 +63,7 @@ export async function addSite(rawInput, durationMs) {
     // Already in the list but its timer had run out — treat this as a re-lock.
     Object.assign(existing, computeNewLock(dur));
   } else {
-    list.push({ domain, ...computeNewLock(dur) });
+    list.push(newEntry(domain, dur));
   }
   await setBlocklist(list);
   await syncRules();
@@ -69,6 +71,21 @@ export async function addSite(rawInput, durationMs) {
   // them so the block shows immediately. (A re-locked site was never
   // unblocked, so its tabs are already on the blocked page.)
   if (!existing) await reloadTabsOn(domain);
+  // isNew: only a new block can be undone (see undoBlock).
+  return { ok: true, domain, isNew: !existing };
+}
+
+// Takes back a block made moments ago, in case it was the wrong site: the
+// one removal allowed while a timer runs. It only works in a NEW block's
+// first 30 seconds (UNDO_MS in lockModel.js); a restarted timer, or any
+// block after that, keeps the usual rules.
+export async function undoBlock(domain) {
+  const list = await getBlocklist();
+  const entry = list.find((e) => e.domain === domain);
+  if (!entry) return { ok: false, error: t("errNotFound") };
+  if (!canUndo(entry)) return { ok: false, error: t("errUndoLate") };
+  await setBlocklist(list.filter((e) => e.domain !== domain));
+  await syncRules();
   return { ok: true };
 }
 
@@ -171,9 +188,9 @@ export async function blockTab(tabId, durationMs, pageUrl) {
   return { ok: true, domain, alreadyBlocked: false };
 }
 
-// blockTab for the right-click menu and the keyboard shortcut. No popup is
-// open there to show an error in, so a failure flashes the toolbar badge
-// (hovering the icon shows why).
+// blockTab for the right-click menu. No popup is open there to show an
+// error in, so a failure flashes the toolbar badge (hovering the icon shows
+// why). A mistake is undone from the countdown page the tab switches to.
 export async function quickBlockTab(tab, durationMs, pageUrl) {
   const target = tab && tab.id >= 0 ? tab : await getActiveTab();
   const r = target

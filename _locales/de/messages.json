@@ -8,9 +8,6 @@
   "appName": {
     "message": "Locked Site Blocker"
   },
-  "cmdBlock": {
-    "message": "Aktuelle Website sperren (für 24 Stunden)"
-  },
   "dateLocale": {
     "message": "de-DE"
   },
@@ -112,7 +109,7 @@
     "message": "Tipp: Rechtsklick auf eine Seite → Diese Website sperren."
   },
   "tipShortcut": {
-    "message": "Tipp: Rechtsklick auf eine Seite → Diese Website sperren, oder $P1$ drücken.",
+    "message": "Tipp: Rechtsklick auf eine Seite → Diese Website sperren. $P1$ öffnet dieses Fenster.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -221,6 +218,80 @@
   "orType": {
     "message": "oder Website eintippen"
   },
+  "reviewTitle": {
+    "message": "$P1$ sperren?",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewWhen": {
+    "message": "Entfernen kannst du die Sperre frühestens am $P1$. Danach bleibt die Website gesperrt, bis du sie entfernst.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewNever": {
+    "message": "Den Timer kannst du verlängern, aber nie verkürzen."
+  },
+  "reviewPath": {
+    "message": "Gesperrt wird ganz $P1$, nicht nur $P2$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "reviewGoogle": {
+    "message": "Damit sind auch Gmail, Drive, Docs und die Google-Anmeldung gesperrt."
+  },
+  "reviewAmazon": {
+    "message": "Damit ist auch die AWS-Konsole gesperrt."
+  },
+  "reviewSubdomains": {
+    "message": "Sperrt auch alle Subdomains von $P1$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewConfirm": {
+    "message": "Für $P1$ sperren",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewCancel": {
+    "message": "Abbrechen"
+  },
+  "undoAsk": {
+    "message": "Falsche Website?"
+  },
+  "undoButton": {
+    "message": "Rückgängig · $P1$ s",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaUndo": {
+    "message": "Sperre von $P1$ rückgängig machen",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
   "msgBlocked": {
     "message": "Gesperrt."
   },
@@ -250,6 +321,14 @@
   },
   "msgRemoved": {
     "message": "$P1$ entfernt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgUndone": {
+    "message": "$P1$ ist nicht mehr gesperrt.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -482,6 +561,9 @@
   },
   "errNoTab": {
     "message": "Es gibt keinen Tab zum Sperren."
+  },
+  "errUndoLate": {
+    "message": "Zu spät: Eine neue Sperre lässt sich nur in den ersten 30 Sekunden rückgängig machen."
   },
   "badgeCouldnt": {
     "message": "Sperren fehlgeschlagen: $P1$",

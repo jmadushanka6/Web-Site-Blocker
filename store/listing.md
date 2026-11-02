@@ -56,7 +56,7 @@ Block a site and choose how long the lock lasts: 24 hours, 48 hours, 7 days or 3
 
 HOW IT WORKS
 • Type or paste any link, such as facebook.com or https://twitter.com/home, and click Block. The site and all of its subdomains are blocked straight away, including tabs you already have open.
-• Or block the site you're on without typing: right-click the page (or the extension's icon) and choose Block this site, press Alt+Shift+L, or click the one-click button in the popup.
+• Or block the site you're on without typing: right-click the page (or the extension's icon) and choose Block this site, or click the one-click button in the popup (Alt+Shift+L opens it).
 • Visiting a blocked site shows a calm countdown page instead.
 • While a site is locked, you can make the lock longer (48 hours, 7 days or 30 days from now), but never shorter.
 • When the timer runs out, the site stays blocked until you decide: remove it, or block it again for another stretch.
@@ -95,7 +95,7 @@ Sperre eine Website und wähle, wie lange die Sperre gilt: 24 Stunden, 48 Stunde
 
 SO FUNKTIONIERT ES
 • Link eintippen oder einfügen, z. B. instagram.com oder https://www.youtube.com, und auf „Sperren“ klicken. Die Website und alle Subdomains sind sofort gesperrt – auch in Tabs, die schon offen sind.
-• Oder sperre die Website, auf der du gerade bist, ohne zu tippen: Rechtsklick auf die Seite (oder das Erweiterungssymbol) → „Diese Website sperren“, Alt+Umschalttaste+L drücken oder den Ein-Klick-Knopf im Erweiterungsfenster nutzen.
+• Oder sperre die Website, auf der du gerade bist, ohne zu tippen: Rechtsklick auf die Seite (oder das Erweiterungssymbol) → „Diese Website sperren“ oder den Ein-Klick-Button im Erweiterungsfenster nutzen (Alt+Umschalttaste+L öffnet es).
 • Wer eine gesperrte Website aufruft, sieht stattdessen eine ruhige Countdown-Seite.
 • Solange eine Website gesperrt ist, kannst du die Sperre verlängern (48 Stunden, 7 Tage oder 30 Tage ab jetzt) – aber nie verkürzen.
 • Ist der Timer abgelaufen, bleibt die Website gesperrt, bis du entscheidest: entfernen oder erneut sperren.
@@ -146,10 +146,10 @@ add a keyword list; the store treats that as spam.
 | Permission | Justification |
 | --- | --- |
 | `declarativeNetRequest` | Blocks the websites the user adds to their block list. For each site, the extension adds a rule that shows the extension's own countdown page instead of the site (or a plain block, if site access is restricted). Rules are built only from the user's list. |
-| `storage` | Saves the user's block list (each site's domain, when it was added and when its lock ends) locally on the device, so blocks persist across browser restarts. It also keeps, on the device, the time the extension was last running and a short log of times it was switched off, so the popup can tell the user about them. |
+| `storage` | Saves the user's block list (each site's domain, when it was added, when its timer started and when it ends) locally on the device, so blocks persist across browser restarts. It also keeps, on the device, the time the extension was last running and a short log of times it was switched off, so the popup can tell the user about them. |
 | `contextMenus` | Adds a "Block this site" item to the right-click menu on web pages and on the extension's toolbar icon, so the user can block the site they're on without typing its address. Choosing a lock length from it blocks that site; the menu does nothing else. |
 | `alarms` | A once-a-minute heartbeat that records, on the device, that the extension is running. While the extension is switched off, none of the user's blocks apply; when it's switched back on, the last heartbeat tells the popup roughly when it went off, so it can show the user when and for how long their blocks weren't working. |
-| Host permission `<all_urls>` | Chrome only lets a redirect rule act on sites the extension has host access to, and users can block any website they choose, so access can't be limited to a fixed list. It is used only to show the extension's countdown page in place of sites on the user's block list, to reload tabs already open on a site when the user blocks it, and to see which site the current tab is on when the user asks to block it (from the popup, the right-click menu or the keyboard shortcut). The extension has no content scripts, never reads or changes page content, and makes no network requests. |
+| Host permission `<all_urls>` | Chrome only lets a redirect rule act on sites the extension has host access to, and users can block any website they choose, so access can't be limited to a fixed list. It is used only to show the extension's countdown page in place of sites on the user's block list, to reload tabs already open on a site when the user blocks it, and to see which site the current tab is on when the user asks to block it (from the popup, which the keyboard shortcut opens, or the right-click menu). The extension has no content scripts, never reads or changes page content, and makes no network requests. |
 
 **Remote code:** No, I am not using remote code.
 

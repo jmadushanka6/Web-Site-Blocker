@@ -8,8 +8,8 @@ shared.
 
 ## What the extension stores
 
-- The list of websites you block and, for each one, when you added it and when
-  its lock ends.
+- The list of websites you block and, for each one, when you first added it,
+  when its current timer started and when it ends.
 - Whether you've dismissed the Incognito notice in the extension's popup, when
   you first opened the popup, and whether you've answered or dismissed its
   one-time "Is the blocker helping you?" prompt.
@@ -28,8 +28,8 @@ synced to your Google account or to other devices.
 - It doesn't read, record or change the content of the pages you visit, and it
   doesn't keep a history of your browsing. The only time it looks at a page's
   address is to block the site you're on: when you open its popup (to offer a
-  one-click "Block" button for that site), or when you use its right-click menu
-  or keyboard shortcut. The address isn't kept unless you block the site, and
+  one-click "Block" button for that site, which its keyboard shortcut also
+  opens), or when you use its right-click menu. The address isn't kept unless you block the site, and
   then only the site's name goes on your list.
 - It has no account, ads, analytics or tracking, and it doesn't run remote code.
 - The popup may show a one-time prompt with buttons to rate the extension or
@@ -77,8 +77,8 @@ werden keine Daten erhoben oder weitergegeben.
 
 ### Was die Erweiterung speichert
 
-- Die Liste der Websites, die du sperrst, und für jede, wann du sie
-  hinzugefügt hast und wann ihre Sperre endet.
+- Die Liste der Websites, die du sperrst, und für jede, wann du sie zuerst
+  hinzugefügt hast, wann ihr aktueller Timer begann und wann er endet.
 - Ob du den Inkognito-Hinweis im Erweiterungsfenster geschlossen hast, wann
   du das Fenster zum ersten Mal geöffnet hast und ob du die einmalige Frage
   „Hilft dir der Blocker?“ beantwortet oder geschlossen hast.
@@ -97,8 +97,8 @@ werden weder mit deinem Google-Konto noch mit anderen Geräten synchronisiert.
 - Sie liest, speichert oder verändert keine Inhalte der Seiten, die du
   besuchst, und führt keinen Browserverlauf. Die Adresse einer Seite sieht sie
   nur, wenn du die Website sperren willst, auf der du gerade bist: beim Öffnen
-  des Erweiterungsfensters (für den Ein-Klick-Knopf), über das Rechtsklick-Menü
-  oder per Tastenkürzel. Die Adresse wird nicht gespeichert, außer du sperrst
+  des Erweiterungsfensters (für den Ein-Klick-Button; das Tastenkürzel öffnet es
+  ebenfalls) oder über das Rechtsklick-Menü. Die Adresse wird nicht gespeichert, außer du sperrst
   die Website – dann landet nur ihr Name auf deiner Liste.
 - Kein Konto, keine Werbung, keine Analyse, kein Tracking, kein nachgeladener
   Code.

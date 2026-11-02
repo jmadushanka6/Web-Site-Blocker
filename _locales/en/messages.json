@@ -11,10 +11,6 @@
     "message": "Locked Site Blocker",
     "description": "Short name in the popup header and toolbar tooltip."
   },
-  "cmdBlock": {
-    "message": "Block the site you're on (locked for 24 hours)",
-    "description": "Keyboard shortcut description."
-  },
   "dateLocale": {
     "message": "en-GB",
     "description": "BCP 47 locale used to format dates in this language."
@@ -118,7 +114,7 @@
     "message": "Tip: right-click any page → Block this site."
   },
   "tipShortcut": {
-    "message": "Tip: right-click any page → Block this site, or press $P1$.",
+    "message": "Tip: right-click any page → Block this site. $P1$ opens this popup.",
     "description": "$1 is a keyboard shortcut, e.g. Alt+Shift+L.",
     "placeholders": {
       "p1": {
@@ -230,6 +226,87 @@
   "orType": {
     "message": "or type a site"
   },
+  "reviewTitle": {
+    "message": "Block $P1$?",
+    "description": "Title of the review shown before some new blocks. $1 is the site.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewWhen": {
+    "message": "You can't remove it before $P1$. After that, it stays blocked until you remove it.",
+    "description": "$1 is a date and time, e.g. Tue 3 Nov, 11:40.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewNever": {
+    "message": "You can extend the timer, never shorten it."
+  },
+  "reviewPath": {
+    "message": "This blocks all of $P1$, not just $P2$.",
+    "description": "$1 is the site, $2 the page the user typed, e.g. /r/politics.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "reviewGoogle": {
+    "message": "This also blocks Gmail, Drive, Docs and Google sign-in."
+  },
+  "reviewAmazon": {
+    "message": "This also blocks the AWS console."
+  },
+  "reviewSubdomains": {
+    "message": "Also blocks every subdomain of $P1$.",
+    "description": "$1 is the site.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewConfirm": {
+    "message": "Block for $P1$",
+    "description": "$1 is a timer length, e.g. 24 hours.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewCancel": {
+    "message": "Cancel"
+  },
+  "undoAsk": {
+    "message": "Wrong site?"
+  },
+  "undoButton": {
+    "message": "Undo · $P1$ s",
+    "description": "$1 is the number of seconds left to undo a new block.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaUndo": {
+    "message": "Undo blocking $P1$",
+    "description": "$1 is the site.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
   "msgBlocked": {
     "message": "Blocked."
   },
@@ -259,6 +336,14 @@
   },
   "msgRemoved": {
     "message": "$P1$ removed.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgUndone": {
+    "message": "$P1$ isn't blocked any more.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -499,6 +584,9 @@
   },
   "errNoTab": {
     "message": "There's no tab to block."
+  },
+  "errUndoLate": {
+    "message": "Too late to undo: a new block can only be undone in its first 30 seconds."
   },
   "badgeCouldnt": {
     "message": "Couldn't block: $P1$",

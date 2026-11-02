@@ -11,9 +11,12 @@
 // changes something while this tab stays open.
 //
 // The page has three states: locked (counting down), expired (still
-// blocked, but removable) and removed (no longer on the list at all).
+// blocked, but removable) and removed (no longer on the list at all). For
+// the first 30 seconds of a new block, the locked state also offers
+// "Wrong site? Undo".
 
 import { t, applyI18n } from "./i18n.js";
+import { undoMsLeft } from "./lockModel.js";
 
 applyI18n();
 
@@ -32,10 +35,40 @@ const timeEl = document.getElementById("statusTime");
 const barEl = document.getElementById("bar");
 const hintEl = document.getElementById("hint");
 const goLink = document.getElementById("goLink");
+const undoEl = document.getElementById("undo");
+const undoAskEl = document.getElementById("undoAsk");
+const undoBtn = document.getElementById("undoBtn");
 
 domEl.textContent = domain;
 
 let tickHandle = null;
+let liveEntry = null; // the site's entry as stored, once it has been read
+let undoError = ""; // why an undo failed, shown in place of the button
+
+// "Wrong site? Undo · 28 s" while a new block can still be taken back.
+function renderUndo(now) {
+  if (undoError) {
+    undoAskEl.textContent = undoError;
+    undoBtn.hidden = true;
+    undoEl.hidden = false;
+    return;
+  }
+  const left = hasDomain ? undoMsLeft(liveEntry, now) : 0;
+  undoEl.hidden = left <= 0;
+  if (left > 0) undoBtn.textContent = t("undoButton", Math.ceil(left / 1000));
+}
+
+undoBtn.addEventListener("click", () => {
+  undoBtn.disabled = true;
+  chrome.runtime.sendMessage({ type: "undo", domain }, (r) => {
+    undoBtn.disabled = false;
+    if (chrome.runtime.lastError || !r || !r.ok) {
+      undoError = (r && r.error) || t("errGeneric");
+      renderUndo(Date.now());
+    }
+    // On success the storage listener below switches to "No longer blocked".
+  });
+});
 
 function fmt(ms) {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -62,9 +95,11 @@ function renderLocked(remaining) {
   const pct = total > 0 ? Math.min(100, Math.max(0, ((total - remaining) / total) * 100)) : 0;
   barEl.style.width = pct + "%";
   timeEl.textContent = fmt(remaining);
+  renderUndo(Date.now());
 }
 
 function renderExpired() {
+  undoEl.hidden = true;
   document.title = t("blkTabTitle", domain);
   ringEl.textContent = "🔓";
   titleEl.textContent = t("blkExpiredTitle");
@@ -79,6 +114,7 @@ function renderExpired() {
 
 function renderRemoved() {
   clearTimeout(tickHandle);
+  undoEl.hidden = true;
   document.title = t("blkRemovedTitle");
   ringEl.textContent = "🔓";
   titleEl.textContent = t("blkRemovedTitle");
@@ -107,6 +143,7 @@ function tick() {
 }
 
 function applyEntry(entry) {
+  liveEntry = entry || null;
   if (!entry) {
     renderRemoved();
     return;

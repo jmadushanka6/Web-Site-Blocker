@@ -190,6 +190,8 @@ async function popupSection() {
   await popup.evaluate(() => { const ul = document.querySelector("#list"); ul.scrollTop = ul.scrollHeight; });
   const scrollBefore = await popup.evaluate(() => document.querySelector("#list").scrollTop);
   check("list is scrollable", scrollBefore > 0, "scrollTop=" + scrollBefore);
+  const choice = (await lastSel.locator("option:checked").textContent()).trim();
+  check("an Extend choice says the day it would end", /^30 days from now · .*\d/.test(choice), choice);
   await sleep(16000);
   check("picked duration survives the 15s refresh", (await lastSel.inputValue()) === thirty);
   const scrollAfter = await popup.evaluate(() => document.querySelector("#list").scrollTop);
@@ -222,7 +224,8 @@ async function popupSection() {
   await sleep(31000);
   const soonRow2 = popup.locator("li.item", { hasText: "soon.example" });
   check("row flips to unlocked after the timer ends", (await soonRow2.getAttribute("class")).includes("expired"));
-  check("unlocked badge", (await soonRow2.locator(".badge").textContent()).includes("Unlocked"));
+  check("badge says the timer ended", (await soonRow2.locator(".badge").textContent()).trim() === "Timer ended");
+  check("…and offers to restart it", (await soonRow2.locator(".btn-action").textContent()).trim() === "Restart timer");
   check("Remove appears once unlocked", (await soonRow2.locator(".btn-remove").count()) === 1);
   await soonRow2.locator(".btn-remove").click();
   await popup.waitForFunction(() => document.querySelector("#msg").textContent.includes("removed"));
@@ -257,7 +260,7 @@ async function reviewSection() {
   check("the add form steps aside", await popup.isHidden("#addCard"));
   check("confirm names the timer", (await popup.textContent("#reviewConfirm")) === "Block for 24 hours");
   const when = await popup.textContent("#reviewWhen");
-  check("says when it can first be removed", /^You can't remove it before \w{3} \d{1,2} \w{3}, \d{1,2}:\d{2}( [AP]M)?\. After that, /.test(when), when);
+  check("says when it can first be removed", /^You can't remove it before .*\d{1,2}:\d{2}( [AP]M)?\. After that, /.test(when), when);
   check("four timers to pick from", (await popup.locator("#reviewDur input").count()) === 4);
   await popup.click(`#reviewDur input[value="${7 * DAY}"]`);
   check("the button follows the timer picked", (await popup.textContent("#reviewConfirm")) === "Block for 7 days");
@@ -364,10 +367,14 @@ async function blockedSection() {
     blocklist[0].lockUntil = Date.now() - 1000;
     await chrome.storage.local.set({ blocklist });
   });
-  await page.waitForFunction(() => document.querySelector("#title").textContent === "This block has expired");
-  check("expired state shown live", true);
+  await page.waitForFunction(() => document.querySelector("#title").textContent === "Timer's up — still blocked");
+  check("ended state shown live", true);
+  const status = (await page.textContent("#statusTime")).trim();
+  check("…saying when the timer ended", /^Ended · .*\d{1,2}:\d{2}/.test(status), status);
+  check("…with the lock still closed", (await page.textContent("#ring")) === "🔒" && (await page.getAttribute("#ring", "class")).includes("quiet"));
+  check("…and that the site stays blocked", (await page.textContent("#message")).trim() === "The site stays blocked until you remove it.");
   const hint2 = (await page.textContent("#hint")).trim();
-  check("expired hint offers remove or block again", /remove/i.test(hint2) && /block it again/i.test(hint2), hint2);
+  check("ended hint offers restarting the timer or removing the site", /restart the timer/i.test(hint2) && /remove/i.test(hint2), hint2);
 
   await popup.reload();
   await popup.waitForSelector("li.item .btn-remove");
@@ -516,7 +523,7 @@ async function germanSection() {
   const { context, sw, id, errors } = await launch(buildExtension(), { lang: "de" });
   check("Chrome gives the extension German", (await sw.evaluate(() => chrome.i18n.getMessage("block"))) === "Sperren");
   const popup = await openPopup(context, id, errors);
-  check("popup header in German", (await popup.textContent(".sub")).startsWith("Sperrt eine Website"));
+  check("popup header in German", (await popup.textContent(".sub")).startsWith("Sperrt Websites samt Subdomains"));
   check("button in German", (await popup.textContent("#addBtn")) === "Sperren");
   check("placeholder in German", (await popup.getAttribute("#url", "placeholder")) === "z. B. facebook.com");
   check("lock lengths in German", (await popup.textContent("#addDur option")) === "24 Stunden");
@@ -539,7 +546,9 @@ async function germanSection() {
   check("undo in German", /^Rückgängig · \d+ s$/.test((await popup.textContent("li.item .btn-undo")).trim()));
   await popup.waitForSelector("li.item .badge.locked");
   const badge = (await popup.textContent("li.item .badge")).trim();
-  check("countdown in German", /^🔒 noch 7 Tg\. 0 Std\.$/.test(badge), badge);
+  check("countdown in German", /^Entfernbar in 7 Tg\. 0 Std\.$/.test(badge), badge);
+  const choiceDe = (await popup.textContent("li.item select.dur option")).trim();
+  check("extend choice in German", /^(7|30) Tage ab jetzt · \S+, \d{1,2}\. \S+$/.test(choiceDe), choiceDe);
   check("count in German", (await popup.textContent("#count")) === "1 Website");
   check("extend button in German", (await popup.textContent("li.item .btn-action")) === "Verlängern");
   const err = await addSite(popup, "example.org", DAY);

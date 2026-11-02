@@ -50,6 +50,8 @@
     font-size: 32px;
     box-shadow: 0 10px 30px rgba(91,140,255,0.35);
   }
+  /* Timer ended: still locked, but nothing is counting down any more. */
+  .lock-ring.quiet { background: #3a4152; box-shadow: none; }
   h1 { font-size: 21px; margin: 0 0 6px; letter-spacing: 0.1px; }
   .dom {
     display: inline-block; margin: 2px 0 14px; padding: 4px 12px;
@@ -69,6 +71,7 @@
   .status-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 8px; }
   .status-time { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; font-variant-numeric: tabular-nums; }
   .status-time.ready { color: #34d399; }
+  .status-time.ended { color: #c3c9d6; font-size: 17px; }
   .progress { height: 5px; background: rgba(255,255,255,0.08); border-radius: 100px; margin-top: 12px; overflow: hidden; }
   .progress .bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 1s linear; }
 
@@ -103,7 +106,7 @@
     <div class="lock-ring" id="ring" aria-hidden="true">🔒</div>
     <h1 id="title" data-i18n="blkTitle">This site is blocked</h1>
     <div class="dom" id="dom"></div>
-    <p class="message" id="message" data-i18n="blkMessage">You blocked this to stay focused. It stays blocked, and can't be removed until the timer below runs out.</p>
+    <p class="message" id="message" data-i18n="blkMessage">You blocked this for a reason. You can remove it once the timer below runs out.</p>
 
     <div class="status">
       <div class="status-label" id="statusLabel" data-i18n="blkRemovableIn">Removable in</div>
@@ -116,7 +119,7 @@
       <button class="undo-btn" id="undoBtn"></button>
     </div>
 
-    <p class="hint" id="hint" data-i18n="blkHint">You can make this block longer from the extension at any time. Removing it becomes possible when the timer ends.</p>
+    <p class="hint" id="hint" data-i18n="blkHint">You can make the timer longer from the extension at any time. Removing the site becomes possible when the timer ends.</p>
     <a class="go" id="goLink" hidden></a>
   </main>
   <script type="module" src="blocked.js"></script>

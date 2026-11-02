@@ -236,7 +236,8 @@
     white-space: nowrap; flex: none;
   }
   .badge.locked { background: rgba(91, 140, 255, 0.15); color: var(--accent-2); }
-  .badge.unlocked { background: rgba(52, 211, 153, 0.15); color: var(--good); }
+  /* Timer ended: the site is still blocked, so no "all clear" green. */
+  .badge.ended { background: rgba(255, 255, 255, 0.08); color: #c3c9d6; }
 
   .progress {
     height: 4px; background: var(--panel-2); border-radius: 100px; margin-top: 8px; overflow: hidden;
@@ -298,7 +299,7 @@
     <div class="logo" aria-hidden="true">🔒</div>
     <div>
       <h1 data-i18n="appName">Locked Site Blocker</h1>
-      <p class="sub" data-i18n="popupSub">Blocks a site + all subdomains until its timer runs out.</p>
+      <p class="sub" data-i18n="popupSub">Sites stay blocked. Remove one only after its timer ends.</p>
     </div>
   </header>
 
@@ -307,7 +308,7 @@
     <label for="url" class="sr-only" data-i18n="labelSite">Site to block</label>
     <input id="url" type="text" placeholder="e.g. facebook.com" data-i18n-placeholder="placeholderSite" autocomplete="off" spellcheck="false" autofocus>
     <div class="add-row2">
-      <label for="addDur" class="sr-only" data-i18n="labelLength">Lock length</label>
+      <label for="addDur" class="sr-only" data-i18n="labelLength">Timer</label>
       <select id="addDur"></select>
       <button class="btn-primary" id="addBtn" data-i18n="block">Block</button>
     </div>
@@ -316,7 +317,7 @@
   <section class="review" id="review" role="dialog" aria-labelledby="reviewTitle" aria-describedby="reviewBody" hidden>
     <h2 class="review-title" id="reviewTitle"></h2>
     <fieldset class="seg" id="reviewDur">
-      <legend class="sr-only" data-i18n="labelLength">Lock length</legend>
+      <legend class="sr-only" data-i18n="labelLength">Timer</legend>
     </fieldset>
     <p class="review-body" id="reviewBody"><span id="reviewWhen"></span> <span data-i18n="reviewNever">You can extend the timer, never shorten it.</span></p>
     <ul class="review-warn" id="reviewWarn" hidden></ul>
@@ -353,7 +354,7 @@
   <ul id="list" aria-labelledby="listTitle"></ul>
 
   <footer>
-    <p data-i18n="footerExtend">Extending only ever adds time — never removes it.</p>
+    <p data-i18n="footerExtend">Timers can be extended, never shortened.</p>
     <p id="tip" data-i18n="tipDefault">Tip: right-click any page → Block this site.</p>
     <p><a href="#" id="supportLink" hidden data-i18n="supportLink">☕ Support this free extension</a></p>
   </footer>

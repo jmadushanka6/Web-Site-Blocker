@@ -13,19 +13,19 @@ No accounts, no config. The interface is in English and German; it follows your 
 ## Use
 
 - Click the extension icon.
-- Type a link (e.g. `facebook.com`, `https://twitter.com/home`), pick a lock length (24h by default), and click **Block**.
+- Type a link (e.g. `facebook.com`, `https://twitter.com/home`), pick a timer (24 hours by default), and click **Block**.
 - Some blocks get a quick review first: your very first one, any 30-day timer, a typed page (`reddit.com/r/politics` blocks all of reddit.com) and google.com or amazon.com (which also take Gmail, Google sign-in or the AWS console with them). The review says when the site can first be removed, lets you change the timer, and starts with **Cancel** selected.
 - A new block can be undone for 30 seconds, in case you picked the wrong site: **Wrong site? Undo** shows under it in the popup and on its countdown page. After that, the timer applies.
 - Blocking is instant, including in tabs you already have open. `facebook.com` also blocks `m.facebook.com`, `business.facebook.com`, etc. Internationalised names such as `münchen.de` work too (they're stored in their `xn--` form). Domain endings like `co.uk` are refused, since they'd block every site under them.
-- Each site shows a 🔒 countdown to when it becomes removable. There is no Remove option at all while it's locked — it only appears once the timer runs out.
-- While a site is still locked, you can **Extend** it to 48 hours, 7 days, or 30 days from now. The dropdown only ever lists options that are longer than the time currently left, so picking one can never shorten the lock — e.g. with 7 days left, only "30 days" is offered, not 48 hours.
-- Once the timer runs out, the site is still blocked but becomes removable. At that point you can either **Remove** it for good, or **Block again** to restart the timer with a freshly chosen duration.
+- Each site shows when it can be removed ("Removable in 5d 2h"). There is no Remove option at all while its timer runs — it only appears once the timer ends.
+- While the timer runs, you can **Extend** it to 48 hours, 7 days or 30 days from now; each choice shows the day it would end ("7 days from now · Mon 9 Nov"). The dropdown only lists choices longer than the time left, so picking one can never shorten the timer — with 7 days left, only "30 days" is offered.
+- When the timer ends ("Timer ended"), the site **stays blocked** until you remove it. Then you can **Remove** it for good, or **Restart timer** with a freshly chosen length.
 - Visiting a blocked site shows a status page with a live countdown to when it becomes removable.
 
 ### Block the site you're on, without typing
 
 - **Right-click** anywhere on the page → **Block this site** → pick 24 hours, 48 hours, 7 days or 30 days. The same menu is on the extension's toolbar icon (right-click it).
-- Or open the popup while you're on the site and click **Block ‹site›** at the top. It uses the lock length picked in the dropdown below it. **Alt+Shift+L** (Option+Shift+L on a Mac) opens the popup; you can change the shortcut at `chrome://extensions/shortcuts`.
+- Or open the popup while you're on the site and click **Block ‹site›** at the top. It uses the timer picked in the dropdown below it. **Alt+Shift+L** (Option+Shift+L on a Mac) opens the popup; you can change the shortcut at `chrome://extensions/shortcuts`.
 
 The page switches to the blocked screen straight away, where **Undo** takes the block back for the first 30 seconds. On a page that isn't a website (a `chrome://` page, the new-tab page), nothing is blocked and the toolbar icon briefly shows a red ×; hover it to see why.
 

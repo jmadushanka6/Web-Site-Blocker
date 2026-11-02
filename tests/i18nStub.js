@@ -23,3 +23,15 @@ export function makeGetMessage(messages) {
 
 globalThis.chrome = globalThis.chrome || {};
 globalThis.chrome.i18n = { getMessage: makeGetMessage(loadMessages("en")) };
+
+// Dates follow the browser's own variant of the messages' language (see
+// dateLocale in i18n.js). Pin the "browser" to British English, so the
+// expected formats don't depend on the machine running the tests.
+export function setBrowserLanguages(languages) {
+  Object.defineProperty(globalThis, "navigator", {
+    value: { language: languages[0], languages },
+    configurable: true,
+    writable: true,
+  });
+}
+setBrowserLanguages(["en-GB", "en"]);

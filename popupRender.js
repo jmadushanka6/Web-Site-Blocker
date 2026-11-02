@@ -4,28 +4,23 @@
 // worker; callers pass in the callbacks to run when a button is clicked
 // (Dependency Inversion: this module depends on a small callback
 // "interface", not on the concrete popupApi module).
-import { t, dateLocale, durationLabel, remainingText } from "./i18n.js";
+import { t, durationLabel, remainingText, fmtDay } from "./i18n.js";
 import { undoMsLeft } from "./lockModel.js";
 
-// "Tue 3 Nov, 11:40" / "Di., 3. Nov., 11:40": a moment a timer ends at.
-export function fmtDateTime(ts) {
-  return new Date(ts).toLocaleString(dateLocale(), {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-export function populateSelect(sel, options) {
+// `label(option)` names each choice; by default just its length ("7 days").
+export function populateSelect(sel, options, label = durationLabel) {
   sel.innerHTML = "";
   for (const o of options) {
     const opt = document.createElement("option");
     opt.value = o.ms;
-    opt.textContent = durationLabel(o);
+    opt.textContent = label(o);
     sel.appendChild(opt);
   }
+}
+
+// An Extend choice says where it would land: "7 days from now · Mon 9 Nov".
+export function extendLabel(option, now) {
+  return t("extendOption", durationLabel(option), fmtDay(now + option.ms));
 }
 
 export function buildEmptyState() {
@@ -78,9 +73,11 @@ export function buildItem(entry, now, options, callbacks) {
   const dom = document.createElement("span");
   dom.className = "dom";
   dom.textContent = entry.domain;
+  // While the timer runs: "Removable in 5d 2h" (filled in by refresh). Once
+  // it has run out the site is STILL blocked, so the badge says so plainly.
   const badge = document.createElement("span");
-  badge.className = "badge " + (locked ? "locked" : "unlocked");
-  badge.textContent = t("unlocked");
+  badge.className = "badge " + (locked ? "locked" : "ended");
+  badge.textContent = t("badgeEnded");
   top.appendChild(dom);
   top.appendChild(badge);
   li.appendChild(top);
@@ -110,13 +107,13 @@ export function buildItem(entry, now, options, callbacks) {
     sel = document.createElement("select");
     sel.className = "dur";
     sel.setAttribute("aria-label", t(locked ? "ariaNewLength" : "ariaLength", entry.domain));
-    populateSelect(sel, choices);
+    populateSelect(sel, choices, locked ? (o) => extendLabel(o, now) : durationLabel);
     shownChoices = choiceKey(choices);
 
     const actBtn = document.createElement("button");
     actBtn.className = "btn-action";
-    actBtn.textContent = t(locked ? "extend" : "blockAgain");
-    actBtn.setAttribute("aria-label", t(locked ? "ariaExtend" : "ariaBlockAgain", entry.domain));
+    actBtn.textContent = t(locked ? "extend" : "restartTimer");
+    actBtn.setAttribute("aria-label", t(locked ? "ariaExtend" : "ariaRestart", entry.domain));
     actBtn.addEventListener("click", () => {
       const durationMs = Number(sel.value);
       if (locked) callbacks.onExtend(entry.domain, durationMs);
@@ -191,7 +188,7 @@ export function buildItem(entry, now, options, callbacks) {
     const remaining = entry.lockUntil - nowMs;
     if (remaining <= 0) return false; // the lock just ran out: rebuild
 
-    badge.textContent = t("timeLeft", remainingText(remaining));
+    badge.textContent = t("badgeRemovableIn", remainingText(remaining));
     const pct = elapsedPercent(entry, remaining);
     bar.style.width = pct + "%";
     track.setAttribute("aria-valuenow", String(Math.round(pct)));
@@ -203,9 +200,15 @@ export function buildItem(entry, now, options, callbacks) {
     const key = choiceKey(next);
     if (key !== shownChoices) {
       const picked = sel.value;
-      populateSelect(sel, next);
+      populateSelect(sel, next, (o) => extendLabel(o, nowMs));
       if (next.some((o) => String(o.ms) === picked)) sel.value = picked;
       shownChoices = key;
+    } else {
+      // Same choices; keep the days they'd end on current (past midnight).
+      for (const opt of sel.options) {
+        const o = next.find((x) => String(x.ms) === opt.value);
+        if (o) opt.textContent = extendLabel(o, nowMs);
+      }
     }
     return true;
   }
@@ -274,7 +277,7 @@ export function dayPhrase(ts, now = Date.now()) {
   const daysAgo = Math.round((startOfDay(now) - startOfDay(ts)) / DAY_MS);
   if (daysAgo === 0) return t("today");
   if (daysAgo === 1) return t("yesterday");
-  return t("onDate", new Date(ts).toLocaleDateString(dateLocale(), { weekday: "short", day: "numeric", month: "short" }));
+  return t("onDate", fmtDay(ts));
 }
 
 // "10:02 to 10:40 today", or "22:15 yesterday to 08:10 today". (Other

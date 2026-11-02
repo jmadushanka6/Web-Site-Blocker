@@ -19,10 +19,42 @@ export function t(key, ...subs) {
 
 // The locale to format dates in. It follows the language of the messages
 // (not just the browser's), so a date never comes out in a different
-// language from the sentence around it.
+// language from the sentence around it — but in the user's own variant of
+// that language when their browser names one: an Austrian browser
+// ("de-AT") gets "Jän." where the German messages' default (de-DE) would
+// write "Jan.".
 export function dateLocale() {
   const tag = t("dateLocale");
-  return tag === "dateLocale" ? "en-GB" : tag;
+  const fallback = tag === "dateLocale" ? "en-GB" : tag;
+  const lang = fallback.split("-")[0].toLowerCase();
+  const nav = globalThis.navigator;
+  const wanted = (nav && (nav.languages && nav.languages.length ? nav.languages : [nav.language])) || [];
+  const own = wanted.find((l) => typeof l === "string" && l.toLowerCase().startsWith(lang + "-"));
+  if (own) {
+    try {
+      new Date(0).toLocaleDateString(own);
+      return own;
+    } catch {
+      // Not a tag this browser can format with; use the messages' default.
+    }
+  }
+  return fallback;
+}
+
+// "Tue 3 Nov, 11:40" / "Di., 3. Nov., 11:40": a moment a timer ends at.
+export function fmtDateTime(ts) {
+  return new Date(ts).toLocaleString(dateLocale(), {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// "Mon 9 Nov" / "Mo., 9. Nov.": the day a timer ends on.
+export function fmtDay(ts) {
+  return new Date(ts).toLocaleDateString(dateLocale(), { weekday: "short", day: "numeric", month: "short" });
 }
 
 // Fills in a page's static text from data attributes:

@@ -10,12 +10,12 @@
 // always correct, and a storage listener keeps it correct live if the user
 // changes something while this tab stays open.
 //
-// The page has three states: locked (counting down), expired (still
-// blocked, but removable) and removed (no longer on the list at all). For
-// the first 30 seconds of a new block, the locked state also offers
-// "Wrong site? Undo".
+// The page has three states: locked (counting down), expired (the timer
+// has ended but the site is STILL blocked until it's removed) and removed
+// (no longer on the list at all). For the first 30 seconds of a new block,
+// the locked state also offers "Wrong site? Undo".
 
-import { t, applyI18n } from "./i18n.js";
+import { t, applyI18n, fmtDateTime } from "./i18n.js";
 import { undoMsLeft } from "./lockModel.js";
 
 applyI18n();
@@ -85,8 +85,9 @@ function fmt(ms) {
 function renderLocked(remaining) {
   document.title = t("blkTabTitle", domain);
   ringEl.textContent = "🔒";
+  ringEl.classList.remove("quiet");
   titleEl.textContent = t("blkTitle");
-  timeEl.classList.remove("ready");
+  timeEl.classList.remove("ready", "ended");
   labelEl.textContent = t("blkRemovableIn");
   messageEl.textContent = t("blkMessage");
   hintEl.textContent = t("blkHint");
@@ -98,16 +99,20 @@ function renderLocked(remaining) {
   renderUndo(Date.now());
 }
 
+// The timer has run out, but the site stays blocked until it's removed, so
+// this keeps a closed lock and never reads as "unlocked".
 function renderExpired() {
   undoEl.hidden = true;
   document.title = t("blkTabTitle", domain);
-  ringEl.textContent = "🔓";
+  ringEl.textContent = "🔒";
+  ringEl.classList.add("quiet");
   titleEl.textContent = t("blkExpiredTitle");
-  labelEl.textContent = t("blkStatus");
-  timeEl.textContent = t("blkRemovableNow");
-  timeEl.classList.add("ready");
+  labelEl.textContent = t("blkTimer");
+  timeEl.textContent = until ? t("blkEndedAt", fmtDateTime(until)) : t("badgeEnded");
+  timeEl.classList.remove("ready");
+  timeEl.classList.add("ended");
   barEl.style.width = "100%";
-  messageEl.textContent = t("blkExpiredMessage", domain);
+  messageEl.textContent = t("blkExpiredMessage");
   hintEl.textContent = t("blkExpiredHint");
   goLink.hidden = true;
 }
@@ -117,9 +122,11 @@ function renderRemoved() {
   undoEl.hidden = true;
   document.title = t("blkRemovedTitle");
   ringEl.textContent = "🔓";
+  ringEl.classList.remove("quiet");
   titleEl.textContent = t("blkRemovedTitle");
   labelEl.textContent = t("blkStatus");
   timeEl.textContent = t("blkNotBlocked");
+  timeEl.classList.remove("ended");
   timeEl.classList.add("ready");
   barEl.style.width = "100%";
   messageEl.textContent = t("blkRemovedMessage", domain);

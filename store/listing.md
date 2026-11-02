@@ -6,8 +6,9 @@ Text in `[brackets]` is yours to fill in.
 
 Version 1.5.0 is the first public release. It is the 1.4.0 branch plus:
 an English and German interface (`_locales/`), a German store listing, a
-one-time "rate it / support it" prompt after a week of use, and German
-screenshots.
+one-time "rate it / support it" prompt after a week of use, German
+screenshots, a review before risky blocks, a 30-second undo for new blocks,
+and one set of timer words ("Removable in", "Timer ended", "Restart timer").
 
 ## 0. Before you start
 
@@ -41,25 +42,30 @@ paste its detailed description and screenshots.
 
 ### English (default)
 
-**Name:** Locked Site Blocker
+**Name:** Locked Site Blocker – Block Websites with a Timer
 
-**Summary** (129 of 132 characters):
+**Summary** (119 of 132 characters):
 
-> Block distracting sites and their subdomains behind a timer lock. Extend it anytime; remove a site only after its timer runs out.
+> Block distracting websites with a timer of 24 hours to 30 days. Until it ends, a block can't be removed, only extended.
 
 **Detailed description** (plain text — paste as is):
 
 ```
-Locked Site Blocker keeps you away from distracting websites with blocks you can't undo on impulse.
+Holds firm when you don't. Block a distracting site and pick a timer of up to 30 days: until it ends, the block can't be removed. You can only extend it.
 
-Block a site and choose how long the lock lasts: 24 hours, 48 hours, 7 days or 30 days. Until the timer runs out, the site can't be removed from your list. There's no Remove button at all, so a moment of weakness can't undo a decision you made with a clear head.
+Against procrastination, for more focus: exam season, working from home, or less time on social media.
 
 HOW IT WORKS
-• Type or paste any link, such as facebook.com or https://twitter.com/home, and click Block. The site and all of its subdomains are blocked straight away, including tabs you already have open.
+• Type or paste any link, such as facebook.com or https://twitter.com/home, pick a timer (24 hours, 48 hours, 7 days or 30 days) and click Block. The site and all of its subdomains are blocked straight away, including tabs you already have open.
 • Or block the site you're on without typing: right-click the page (or the extension's icon) and choose Block this site, or click the one-click button in the popup (Alt+Shift+L opens it).
 • Visiting a blocked site shows a calm countdown page instead.
-• While a site is locked, you can make the lock longer (48 hours, 7 days or 30 days from now), but never shorter.
-• When the timer runs out, the site stays blocked until you decide: remove it, or block it again for another stretch.
+• While the timer runs, there's no Remove button at all. You can make the timer longer, never shorter.
+• When the timer ends, the site stays blocked until you remove it, or until you restart the timer for another stretch.
+• New blocks can be undone for 30 seconds, in case you picked the wrong site. Your first block, 30-day timers and sites like google.com get a quick review before they start.
+• Switch it off, and it tells you when and for how long: the popup shows when the blocker was off and your blocked sites could be opened.
+
+FREE FOR GOOD
+• Blocking and timers are free for good. If paid extras come later, nothing free will be taken away.
 
 PRIVATE BY DESIGN
 • Your block list is stored only in your browser. Nothing is collected, sent anywhere or shared.
@@ -70,7 +76,7 @@ GOOD TO KNOW
 • Available in English and German.
 • Chrome doesn't run extensions in Incognito windows unless you allow it. To block sites there too, open chrome://extensions, choose Details for Locked Site Blocker and turn on "Allow in Incognito". The extension reminds you about this.
 • If you limit the extension's site access in Chrome, blocked sites stay blocked but show Chrome's standard "blocked" page instead of the countdown.
-• Like any extension, it can be turned off or removed from chrome://extensions. It's built to stop impulse browsing, not to be impossible to remove. If it's switched off and on again, the popup tells you when it was off and for how long.
+• Like any extension, it can be turned off or removed from chrome://extensions. It's built to stop impulse browsing, not to be impossible to remove.
 
 WHY "ACCESS TO ALL WEBSITES"?
 Chrome only lets an extension redirect a site it has access to, and you can block any site you like. Locked Site Blocker uses this access only to show its countdown page in place of the sites on your list.
@@ -82,23 +88,28 @@ Chrome only lets an extension redirect a site it has access to, and you can bloc
 
 **Name:** Locked Site Blocker – Websites sperren mit Timer
 
-**Kurzbeschreibung** (125 von 132 Zeichen):
+**Kurzbeschreibung** (122 von 132 Zeichen):
 
-> Sperrt ablenkende Websites samt Subdomains mit einem Timer. Verlängern geht jederzeit, entfernen erst nach Ablauf des Timers.
+> Blockiert ablenkende Websites samt Subdomains mit Timer. Verlängern geht jederzeit, Entfernen erst nach Ablauf des Timers.
 
 **Ausführliche Beschreibung** (reiner Text — so einfügen):
 
 ```
-Locked Site Blocker hält dich von ablenkenden Websites fern – mit Sperren, die du nicht spontan aufheben kannst. Ideal zum Lernen, für die Prüfungsphase, fürs Homeoffice oder einfach weniger Social Media.
+Hält stand, wenn du schwach wirst. Sperre eine ablenkende Website und wähle einen Timer bis zu 30 Tagen: Vorher lässt sich die Sperre nicht entfernen, nur der Timer verlängern.
 
-Sperre eine Website und wähle, wie lange die Sperre gilt: 24 Stunden, 48 Stunden, 7 Tage oder 30 Tage. Bis der Timer abläuft, lässt sich die Website nicht von deiner Liste entfernen. Es gibt schlicht keinen Entfernen-Knopf – ein schwacher Moment kann also keine Entscheidung rückgängig machen, die du mit klarem Kopf getroffen hast.
+Gegen Prokrastination, für mehr Fokus: ideal für Lern- und Prüfungsphasen (Abi, Matura, Uni), fürs Homeoffice – oder wenn du weniger Zeit auf Social Media verbringen willst.
 
 SO FUNKTIONIERT ES
-• Link eintippen oder einfügen, z. B. instagram.com oder https://www.youtube.com, und auf „Sperren“ klicken. Die Website und alle Subdomains sind sofort gesperrt – auch in Tabs, die schon offen sind.
-• Oder sperre die Website, auf der du gerade bist, ohne zu tippen: Rechtsklick auf die Seite (oder das Erweiterungssymbol) → „Diese Website sperren“ oder den Ein-Klick-Button im Erweiterungsfenster nutzen (Alt+Umschalttaste+L öffnet es).
-• Wer eine gesperrte Website aufruft, sieht stattdessen eine ruhige Countdown-Seite.
-• Solange eine Website gesperrt ist, kannst du die Sperre verlängern (48 Stunden, 7 Tage oder 30 Tage ab jetzt) – aber nie verkürzen.
-• Ist der Timer abgelaufen, bleibt die Website gesperrt, bis du entscheidest: entfernen oder erneut sperren.
+• Link eintippen oder einfügen, z. B. instagram.com oder https://www.youtube.com, einen Timer wählen (24 Stunden, 48 Stunden, 7 Tage oder 30 Tage) und auf „Sperren“ klicken. Die Website und alle Subdomains sind sofort blockiert – auch in Tabs, die schon offen sind.
+• Oder sperre die Webseite, auf der du gerade bist, ohne zu tippen: Rechtsklick auf die Seite (oder das Erweiterungssymbol) → „Diese Website sperren“ oder den Ein-Klick-Button im Erweiterungsfenster nutzen (Alt+Umschalttaste+L öffnet es).
+• Rufst du eine gesperrte Website auf, siehst du stattdessen eine ruhige Countdown-Seite.
+• Solange der Timer läuft, gibt es keinen Entfernen-Button. Den Timer kannst du verlängern, aber nie verkürzen.
+• Ist der Timer abgelaufen, bleibt die Website gesperrt, bis du sie entfernst – oder du startest den Timer neu.
+• Neue Sperren lassen sich 30 Sekunden lang rückgängig machen, falls du die falsche Website erwischt hast. Deine erste Sperre, 30-Tage-Timer und Webseiten wie google.com zeigt dir die Erweiterung vorher noch einmal zur Kontrolle.
+• Schaltest du den Blocker aus und wieder ein, zeigt er dir, wann und wie lange er aus war und deine gesperrten Websites offen waren.
+
+FÜR IMMER KOSTENLOS
+• Sperren und Timer bleiben kostenlos. Falls später kostenpflichtige Extras dazukommen, fällt nichts Kostenloses weg.
 
 DATENSCHUTZ AUS PRINZIP
 • Deine Sperrliste wird nur in deinem Browser gespeichert. Es wird nichts erhoben, übertragen oder weitergegeben.
@@ -108,19 +119,21 @@ DATENSCHUTZ AUS PRINZIP
 GUT ZU WISSEN
 • Komplett auf Deutsch (und Englisch).
 • Chrome führt Erweiterungen in Inkognito-Fenstern nur aus, wenn du es erlaubst. Damit Sperren auch dort gelten: chrome://extensions öffnen, bei Locked Site Blocker auf „Details“ klicken und „Im Inkognitomodus zulassen“ einschalten. Die Erweiterung erinnert dich daran.
-• Wenn du den Websitezugriff der Erweiterung einschränkst, bleiben gesperrte Websites gesperrt, zeigen aber Chromes einfache Sperrseite statt des Countdowns.
-• Wie jede Erweiterung lässt sie sich unter chrome://extensions ausschalten oder entfernen. Sie soll spontanes Surfen verhindern, nicht unentfernbar sein. Wird sie aus- und wieder eingeschaltet, zeigt das Erweiterungsfenster, wann und wie lange sie aus war.
+• Wenn du den Websitezugriff der Erweiterung einschränkst, bleiben gesperrte Websites blockiert, zeigen aber Chromes einfache Sperrseite statt des Countdowns.
+• Wie jede Erweiterung lässt sie sich unter chrome://extensions ausschalten oder entfernen. Sie soll spontanes Surfen verhindern, nicht unentfernbar sein.
 
 WARUM „ZUGRIFF AUF ALLE WEBSITES“?
-Chrome erlaubt einer Erweiterung nur dann, eine Website umzuleiten, wenn sie Zugriff darauf hat – und du kannst jede beliebige Website sperren. Locked Site Blocker nutzt diesen Zugriff ausschließlich, um statt der Websites auf deiner Liste die Countdown-Seite anzuzeigen.
+Chrome erlaubt einer Erweiterung nur dann, eine Website umzuleiten, wenn sie Zugriff darauf hat – und du kannst jede beliebige Webseite sperren. Locked Site Blocker nutzt diesen Zugriff ausschließlich, um statt der Websites auf deiner Liste die Countdown-Seite anzuzeigen.
 ```
 
 **Screenshots:** `store/screenshots/de/1-popup.png`, `store/screenshots/de/2-blocked-page.png`
 
-The search terms German users type — *Websites sperren*, *Website blockieren*,
-*Seiten sperren*, *Fokus*, *Prokrastination*, *lernen*, *Prüfungsphase*,
+The search terms German users type — *Websites sperren*, *Webseiten sperren*,
+*Website blockieren*, *Fokus*, *Prokrastination*, *lernen*, *Prüfungsphase*,
 *Social Media* — appear naturally in the name and description above. Don't
-add a keyword list; the store treats that as spam.
+add a keyword list; the store treats that as spam. The German text says
+"Sperre" only for a block and "Timer" for the countdown, "Button" rather than
+"Knopf", and "du" throughout; keep it that way when editing.
 
 ### Graphics (all languages)
 
@@ -147,7 +160,7 @@ add a keyword list; the store treats that as spam.
 | --- | --- |
 | `declarativeNetRequest` | Blocks the websites the user adds to their block list. For each site, the extension adds a rule that shows the extension's own countdown page instead of the site (or a plain block, if site access is restricted). Rules are built only from the user's list. |
 | `storage` | Saves the user's block list (each site's domain, when it was added, when its timer started and when it ends) locally on the device, so blocks persist across browser restarts. It also keeps, on the device, the time the extension was last running and a short log of times it was switched off, so the popup can tell the user about them. |
-| `contextMenus` | Adds a "Block this site" item to the right-click menu on web pages and on the extension's toolbar icon, so the user can block the site they're on without typing its address. Choosing a lock length from it blocks that site; the menu does nothing else. |
+| `contextMenus` | Adds a "Block this site" item to the right-click menu on web pages and on the extension's toolbar icon, so the user can block the site they're on without typing its address. Choosing a timer from it blocks that site; the menu does nothing else. |
 | `alarms` | A once-a-minute heartbeat that records, on the device, that the extension is running. While the extension is switched off, none of the user's blocks apply; when it's switched back on, the last heartbeat tells the popup roughly when it went off, so it can show the user when and for how long their blocks weren't working. |
 | Host permission `<all_urls>` | Chrome only lets a redirect rule act on sites the extension has host access to, and users can block any website they choose, so access can't be limited to a fixed list. It is used only to show the extension's countdown page in place of sites on the user's block list, to reload tabs already open on a site when the user blocks it, and to see which site the current tab is on when the user asks to block it (from the popup, which the keyboard shortcut opens, or the right-click menu). The extension has no content scripts, never reads or changes page content, and makes no network requests. |
 

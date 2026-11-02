@@ -121,7 +121,7 @@ export async function extendSite(domain, durationMs) {
   const entry = list.find((e) => e.domain === domain);
   if (!entry) return { ok: false, error: t("errNotFound") };
   if (!isLocked(entry)) {
-    return { ok: false, error: t("errAlreadyUnlocked") };
+    return { ok: false, error: t("errTimerEnded") };
   }
   if (!isValidExtension(entry, durationMs)) {
     return {
@@ -144,7 +144,7 @@ export async function relockSite(domain, durationMs) {
   const entry = list.find((e) => e.domain === domain);
   if (!entry) return { ok: false, error: t("errNotFound") };
   if (isLocked(entry)) {
-    return { ok: false, error: t("errStillLocked") };
+    return { ok: false, error: t("errTimerRunning") };
   }
   Object.assign(entry, computeNewLock(durationMs));
   await setBlocklist(list);

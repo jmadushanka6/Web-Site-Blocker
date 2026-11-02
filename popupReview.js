@@ -4,8 +4,7 @@
 // typed page, a site with important subdomains). It says when the block can
 // first be removed, lets the user change the timer, and starts the block
 // only on "Block for …". Cancel (or Escape) leaves everything as it was.
-import { t, durationLabel } from "./i18n.js";
-import { fmtDateTime } from "./popupRender.js";
+import { t, durationLabel, fmtDateTime } from "./i18n.js";
 import { broadWarningKey, typedPath } from "./review.js";
 
 // onShow / onHide: the popup sets its form and list aside while the review

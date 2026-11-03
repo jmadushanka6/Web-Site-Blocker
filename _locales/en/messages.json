@@ -1,19 +1,15 @@
 {
   "extName": {
-    "message": "Locked Site Blocker",
+    "message": "Locked Site Blocker – Block Websites with a Timer",
     "description": "Extension name as shown in the store (max 75 characters)."
   },
   "extDescription": {
-    "message": "Block distracting sites and their subdomains behind a timer lock. Extend it anytime; remove a site only after its timer runs out.",
+    "message": "Block distracting websites with a timer of 24 hours to 30 days. Until it ends, a block can't be removed, only extended.",
     "description": "Store summary (max 132 characters)."
   },
   "appName": {
     "message": "Locked Site Blocker",
     "description": "Short name in the popup header and toolbar tooltip."
-  },
-  "cmdBlock": {
-    "message": "Block the site you're on (locked for 24 hours)",
-    "description": "Keyboard shortcut description."
   },
   "dateLocale": {
     "message": "en-GB",
@@ -36,7 +32,7 @@
   },
   "menuFor": {
     "message": "For $P1$",
-    "description": "$1 is a lock length, e.g. 24 hours.",
+    "description": "$1 is a timer length, e.g. 24 hours.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -73,8 +69,9 @@
       }
     }
   },
-  "timeLeft": {
-    "message": "🔒 $P1$ left",
+  "badgeRemovableIn": {
+    "message": "Removable in $P1$",
+    "description": "Badge on a blocked site while its timer runs. $1 is the time left, e.g. 5d 2h.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -82,7 +79,7 @@
     }
   },
   "popupSub": {
-    "message": "Blocks a site + all subdomains until its timer runs out."
+    "message": "Sites stay blocked. Remove one only after its timer ends."
   },
   "labelSite": {
     "message": "Site to block"
@@ -91,7 +88,7 @@
     "message": "e.g. facebook.com"
   },
   "labelLength": {
-    "message": "Lock length"
+    "message": "Timer"
   },
   "block": {
     "message": "Block"
@@ -112,13 +109,13 @@
     "message": "Blocked sites"
   },
   "footerExtend": {
-    "message": "Extending only ever adds time — never removes it."
+    "message": "Timers can be extended, never shortened."
   },
   "tipDefault": {
     "message": "Tip: right-click any page → Block this site."
   },
   "tipShortcut": {
-    "message": "Tip: right-click any page → Block this site, or press $P1$.",
+    "message": "Tip: right-click any page → Block this site. $P1$ opens this popup.",
     "description": "$1 is a keyboard shortcut, e.g. Alt+Shift+L.",
     "placeholders": {
       "p1": {
@@ -140,11 +137,12 @@
       }
     }
   },
-  "unlocked": {
-    "message": "✓ Unlocked"
+  "badgeEnded": {
+    "message": "Timer ended",
+    "description": "Badge on a site whose timer has run out. It is still blocked."
   },
   "ariaProgress": {
-    "message": "Lock progress for $P1$",
+    "message": "Timer progress for $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -152,7 +150,7 @@
     }
   },
   "ariaNewLength": {
-    "message": "New lock length for $P1$",
+    "message": "New timer for $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -160,7 +158,7 @@
     }
   },
   "ariaLength": {
-    "message": "Lock length for $P1$",
+    "message": "Timer for $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -170,8 +168,20 @@
   "extend": {
     "message": "Extend"
   },
-  "blockAgain": {
-    "message": "Block again"
+  "extendOption": {
+    "message": "$P1$ from now · $P2$",
+    "description": "A choice in the Extend dropdown: $1 a timer length, $2 the day it would end, e.g. 7 days from now · Mon 9 Nov.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "restartTimer": {
+    "message": "Restart timer"
   },
   "ariaExtend": {
     "message": "Extend $P1$",
@@ -181,8 +191,8 @@
       }
     }
   },
-  "ariaBlockAgain": {
-    "message": "Block again $P1$",
+  "ariaRestart": {
+    "message": "Restart the timer for $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -190,7 +200,7 @@
     }
   },
   "maxed": {
-    "message": "Already at the longest available lock"
+    "message": "Already at the longest timer"
   },
   "remove": {
     "message": "Remove"
@@ -208,7 +218,7 @@
   },
   "quickAria": {
     "message": "Block $P1$ for $P2$",
-    "description": "$1 is a site, $2 a lock length.",
+    "description": "$1 is a site, $2 a timer length.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -230,6 +240,87 @@
   "orType": {
     "message": "or type a site"
   },
+  "reviewTitle": {
+    "message": "Block $P1$?",
+    "description": "Title of the review shown before some new blocks. $1 is the site.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewWhen": {
+    "message": "You can't remove it before $P1$. After that, it stays blocked until you remove it.",
+    "description": "$1 is a date and time, e.g. Tue 3 Nov, 11:40.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewNever": {
+    "message": "You can extend the timer, never shorten it."
+  },
+  "reviewPath": {
+    "message": "This blocks all of $P1$, not just $P2$.",
+    "description": "$1 is the site, $2 the page the user typed, e.g. /r/politics.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "reviewGoogle": {
+    "message": "This also blocks Gmail, Drive, Docs and Google sign-in."
+  },
+  "reviewAmazon": {
+    "message": "This also blocks the AWS console."
+  },
+  "reviewSubdomains": {
+    "message": "Also blocks every subdomain of $P1$.",
+    "description": "$1 is the site.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewConfirm": {
+    "message": "Block for $P1$",
+    "description": "$1 is a timer length, e.g. 24 hours.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewCancel": {
+    "message": "Cancel"
+  },
+  "undoAsk": {
+    "message": "Wrong site?"
+  },
+  "undoButton": {
+    "message": "Undo · $P1$ s",
+    "description": "$1 is the number of seconds left to undo a new block.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaUndo": {
+    "message": "Undo blocking $P1$",
+    "description": "$1 is the site.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
   "msgBlocked": {
     "message": "Blocked."
   },
@@ -250,7 +341,7 @@
     }
   },
   "msgRelocked": {
-    "message": "$P1$ locked again.",
+    "message": "Timer restarted for $P1$.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -259,6 +350,14 @@
   },
   "msgRemoved": {
     "message": "$P1$ removed.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgUndone": {
+    "message": "$P1$ isn't blocked any more.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -472,7 +571,7 @@
     "message": "Not found."
   },
   "errLocked": {
-    "message": "Locked. You can remove this in $P1$.",
+    "message": "Its timer is still running. You can remove this site in $P1$.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -482,14 +581,14 @@
   "errDuration": {
     "message": "Pick a valid duration."
   },
-  "errAlreadyUnlocked": {
-    "message": "This site is already unlocked — use \"Block again\" instead."
+  "errTimerEnded": {
+    "message": "This site's timer has ended — use \"Restart timer\" instead."
   },
   "errShorter": {
-    "message": "You can only extend to a longer lock than what's left — pick a bigger option."
+    "message": "Pick a longer option: a timer can only be extended, never shortened."
   },
-  "errStillLocked": {
-    "message": "This site is still locked — use \"Extend\" instead."
+  "errTimerRunning": {
+    "message": "This site's timer is still running — use \"Extend\" instead."
   },
   "errTabGone": {
     "message": "That tab isn't open any more."
@@ -499,6 +598,9 @@
   },
   "errNoTab": {
     "message": "There's no tab to block."
+  },
+  "errUndoLate": {
+    "message": "Too late to undo: a new block can only be undone in its first 30 seconds."
   },
   "badgeCouldnt": {
     "message": "Couldn't block: $P1$",
@@ -532,30 +634,34 @@
     "message": "Removable in"
   },
   "blkMessage": {
-    "message": "You blocked this to stay focused. It stays blocked, and can't be removed until the timer below runs out."
+    "message": "You blocked this for a reason. You can remove it once the timer below runs out."
   },
   "blkHint": {
-    "message": "You can make this block longer from the extension at any time. Removing it becomes possible when the timer ends."
+    "message": "You can make the timer longer from the extension at any time. Removing the site becomes possible when the timer ends."
   },
   "blkExpiredTitle": {
-    "message": "This block has expired"
+    "message": "Timer's up — still blocked"
   },
   "blkStatus": {
     "message": "Status"
   },
-  "blkRemovableNow": {
-    "message": "Removable now"
+  "blkTimer": {
+    "message": "Timer"
   },
-  "blkExpiredMessage": {
-    "message": "$P1$ is still blocked, but its timer has run out.",
+  "blkEndedAt": {
+    "message": "Ended · $P1$",
+    "description": "$1 is when the timer ended, e.g. Sun 1 Nov, 20:15.",
     "placeholders": {
       "p1": {
         "content": "$1"
       }
     }
   },
+  "blkExpiredMessage": {
+    "message": "The site stays blocked until you remove it."
+  },
   "blkExpiredHint": {
-    "message": "Open the extension to remove it or block it again."
+    "message": "Open Locked Site Blocker to restart the timer or remove the site."
   },
   "blkRemovedTitle": {
     "message": "No longer blocked"
@@ -578,6 +684,55 @@
         "content": "$1"
       }
     }
+  },
+  "blkTriesLabel": {
+    "message": "Visits blocked",
+    "description": "Heading over how many times the blocked site was tried."
+  },
+  "blkTriesSub": {
+    "message": "$P1$ today · counting since $P2$",
+    "description": "$1 is today's count, $2 the day counting started, e.g. Tue 27 Oct.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "blkTriesSoon": {
+    "message": "A chart of each day appears from $P1$.",
+    "description": "$1 is the day the daily chart starts showing, e.g. Tue 10 Nov.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkTriesChart": {
+    "message": "Visits blocked per day, last $P1$ days",
+    "description": "Caption of the daily chart's table, for screen readers. $1 is the number of days.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkTriesDay": {
+    "message": "$P1$: $P2$",
+    "description": "Chart tooltip. $1 is a day, $2 that day's count.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "blkToday": {
+    "message": "Today"
   },
   "cdD": {
     "message": "$P1$d $P2$h $P3$m",

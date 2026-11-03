@@ -4,16 +4,48 @@
 // worker; callers pass in the callbacks to run when a button is clicked
 // (Dependency Inversion: this module depends on a small callback
 // "interface", not on the concrete popupApi module).
-import { t, dateLocale, durationLabel, remainingText } from "./i18n.js";
+import { t, durationLabel, remainingText, fmtDay } from "./i18n.js";
+import { undoMsLeft } from "./lockModel.js";
 
-export function populateSelect(sel, options) {
+// `label(option)` names each choice; by default just its length ("7 days").
+export function populateSelect(sel, options, label = durationLabel) {
   sel.innerHTML = "";
   for (const o of options) {
     const opt = document.createElement("option");
     opt.value = o.ms;
-    opt.textContent = durationLabel(o);
+    opt.textContent = label(o);
     sel.appendChild(opt);
   }
+}
+
+// The padlock from the extension's icon, drawn in the badge's own colour.
+// (An emoji would look different on every system.)
+const SVG_NS = "http://www.w3.org/2000/svg";
+function lockIcon() {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("class", "lock-icon");
+  const shackle = document.createElementNS(SVG_NS, "path");
+  shackle.setAttribute("d", "M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10");
+  shackle.setAttribute("fill", "none");
+  shackle.setAttribute("stroke", "currentColor");
+  shackle.setAttribute("stroke-width", "2.6");
+  shackle.setAttribute("stroke-linecap", "round");
+  const body = document.createElementNS(SVG_NS, "rect");
+  body.setAttribute("x", "5");
+  body.setAttribute("y", "10");
+  body.setAttribute("width", "14");
+  body.setAttribute("height", "11");
+  body.setAttribute("rx", "2.5");
+  body.setAttribute("fill", "currentColor");
+  svg.append(shackle, body);
+  return svg;
+}
+
+// An Extend choice says where it would land: "7 days from now · Mon 9 Nov".
+export function extendLabel(option, now) {
+  return t("extendOption", durationLabel(option), fmtDay(now + option.ms));
 }
 
 export function buildEmptyState() {
@@ -43,15 +75,18 @@ function choiceKey(choices) {
   return choices.map((o) => o.ms).join(",");
 }
 
-// Builds one list row and returns { el, refresh(now) }.
+// Builds one list row and returns { el, refresh(now), refreshUndo(now) }.
 //
 // refresh() updates the countdown, the progress bar and the extend choices
 // in place, leaving whatever the user has picked in the dropdown alone. It
 // returns false when the row can't be updated in place (its lock has just
-// run out), telling the caller to rebuild the list.
+// run out), telling the caller to rebuild the list. refreshUndo() counts
+// down a new block's "Wrong site? Undo" line once a second and removes it
+// when its 30 seconds are over.
 //
 // options: { durationOptions, extendOptions }
-// callbacks: { onExtend(domain, durationMs), onRelock(domain, durationMs), onRemove(domain) }
+// callbacks: { onExtend(domain, durationMs), onRelock(domain, durationMs),
+//              onRemove(domain), onUndo(domain) }
 export function buildItem(entry, now, options, callbacks) {
   const locked = entry.lockUntil > now;
 
@@ -63,9 +98,13 @@ export function buildItem(entry, now, options, callbacks) {
   const dom = document.createElement("span");
   dom.className = "dom";
   dom.textContent = entry.domain;
+  // While the timer runs: "Removable in 5d 2h" (filled in by refresh). Once
+  // it has run out the site is STILL blocked, so the badge says so plainly.
   const badge = document.createElement("span");
-  badge.className = "badge " + (locked ? "locked" : "unlocked");
-  badge.textContent = t("unlocked");
+  badge.className = "badge " + (locked ? "locked" : "ended");
+  const badgeText = document.createElement("span");
+  badgeText.textContent = t("badgeEnded");
+  badge.append(lockIcon(), badgeText);
   top.appendChild(dom);
   top.appendChild(badge);
   li.appendChild(top);
@@ -95,13 +134,13 @@ export function buildItem(entry, now, options, callbacks) {
     sel = document.createElement("select");
     sel.className = "dur";
     sel.setAttribute("aria-label", t(locked ? "ariaNewLength" : "ariaLength", entry.domain));
-    populateSelect(sel, choices);
+    populateSelect(sel, choices, locked ? (o) => extendLabel(o, now) : durationLabel);
     shownChoices = choiceKey(choices);
 
     const actBtn = document.createElement("button");
     actBtn.className = "btn-action";
-    actBtn.textContent = t(locked ? "extend" : "blockAgain");
-    actBtn.setAttribute("aria-label", t(locked ? "ariaExtend" : "ariaBlockAgain", entry.domain));
+    actBtn.textContent = t(locked ? "extend" : "restartTimer");
+    actBtn.setAttribute("aria-label", t(locked ? "ariaExtend" : "ariaRestart", entry.domain));
     actBtn.addEventListener("click", () => {
       const durationMs = Number(sel.value);
       if (locked) callbacks.onExtend(entry.domain, durationMs);
@@ -132,6 +171,25 @@ export function buildItem(entry, now, options, callbacks) {
 
   li.appendChild(actions);
 
+  // A block made moments ago can be taken back for 30 seconds.
+  let undoRow = null;
+  let undoBtn = null;
+  if (locked && callbacks.onUndo && undoMsLeft(entry, now) > 0) {
+    undoRow = document.createElement("div");
+    undoRow.className = "undo-row";
+    const ask = document.createElement("span");
+    ask.textContent = t("undoAsk");
+    undoBtn = document.createElement("button");
+    undoBtn.className = "btn-undo";
+    undoBtn.setAttribute("aria-label", t("ariaUndo", entry.domain));
+    undoBtn.addEventListener("click", () => {
+      undoBtn.disabled = true;
+      callbacks.onUndo(entry.domain);
+    });
+    undoRow.append(ask, undoBtn);
+    li.appendChild(undoRow);
+  }
+
   // The popup explains restricted site access once, above the list; each
   // affected row just carries this short marker.
   if (entry.siteAccess === false) {
@@ -141,12 +199,23 @@ export function buildItem(entry, now, options, callbacks) {
     li.appendChild(note);
   }
 
+  function refreshUndo(nowMs) {
+    if (!undoRow) return;
+    const left = undoMsLeft(entry, nowMs);
+    if (left <= 0) {
+      undoRow.remove();
+      undoRow = null;
+      return;
+    }
+    undoBtn.textContent = t("undoButton", Math.ceil(left / 1000));
+  }
+
   function refresh(nowMs) {
     if (!locked) return true; // nothing on an unlocked row changes with time
     const remaining = entry.lockUntil - nowMs;
     if (remaining <= 0) return false; // the lock just ran out: rebuild
 
-    badge.textContent = t("timeLeft", remainingText(remaining));
+    badgeText.textContent = t("badgeRemovableIn", remainingText(remaining));
     const pct = elapsedPercent(entry, remaining);
     bar.style.width = pct + "%";
     track.setAttribute("aria-valuenow", String(Math.round(pct)));
@@ -158,15 +227,22 @@ export function buildItem(entry, now, options, callbacks) {
     const key = choiceKey(next);
     if (key !== shownChoices) {
       const picked = sel.value;
-      populateSelect(sel, next);
+      populateSelect(sel, next, (o) => extendLabel(o, nowMs));
       if (next.some((o) => String(o.ms) === picked)) sel.value = picked;
       shownChoices = key;
+    } else {
+      // Same choices; keep the days they'd end on current (past midnight).
+      for (const opt of sel.options) {
+        const o = next.find((x) => String(x.ms) === opt.value);
+        if (o) opt.textContent = extendLabel(o, nowMs);
+      }
     }
     return true;
   }
 
   refresh(now);
-  return { el: li, refresh };
+  refreshUndo(now);
+  return { el: li, refresh, refreshUndo };
 }
 
 // One-click "Block <site in this tab>" button, plus the divider above the
@@ -228,7 +304,7 @@ export function dayPhrase(ts, now = Date.now()) {
   const daysAgo = Math.round((startOfDay(now) - startOfDay(ts)) / DAY_MS);
   if (daysAgo === 0) return t("today");
   if (daysAgo === 1) return t("yesterday");
-  return t("onDate", new Date(ts).toLocaleDateString(dateLocale(), { weekday: "short", day: "numeric", month: "short" }));
+  return t("onDate", fmtDay(ts));
 }
 
 // "10:02 to 10:40 today", or "22:15 yesterday to 08:10 today". (Other

@@ -28,6 +28,10 @@ export const EXTEND_OPTIONS = DURATION_OPTIONS.filter((o) => o.key !== "24h");
 
 export const DEFAULT_DURATION_MS = DURATION_OPTIONS[0].ms; // 24h, used for new sites
 
+// A NEW block can be taken back for this long after it's made, in case it
+// was the wrong site. After that, the timer rules apply as usual.
+export const UNDO_MS = 30 * 1000;
+
 export function isValidDuration(ms) {
   return DURATION_OPTIONS.some((o) => o.ms === ms);
 }
@@ -108,6 +112,27 @@ export function migrateEntry(entry) {
 // whose previous timer already expired.
 export function computeNewLock(durationMs, now = Date.now()) {
   return { addedAt: now, lockUntil: now + durationMs };
+}
+
+// A brand-new entry. `createdAt` records when the site first went on the
+// list; restarting its timer later changes `addedAt` but never `createdAt`,
+// which is how canUndo() tells a new block from a restarted one.
+export function newEntry(domain, durationMs, now = Date.now()) {
+  return { domain, createdAt: now, ...computeNewLock(durationMs, now) };
+}
+
+// How much of a new block's undo window is left, in ms (0 = none). Only a
+// block made moments ago qualifies — not a restarted timer, an entry from
+// before undo existed, or one whose start lies in the future (a clock set
+// back can't stretch the window).
+export function undoMsLeft(entry, now = Date.now()) {
+  if (!entry || typeof entry.createdAt !== "number" || entry.addedAt !== entry.createdAt) return 0;
+  if (now < entry.createdAt) return 0;
+  return Math.max(0, entry.createdAt + UNDO_MS - now);
+}
+
+export function canUndo(entry, now = Date.now()) {
+  return undoMsLeft(entry, now) > 0;
 }
 
 // Extending sets the lock to expire `durationMs` from now. Combined with

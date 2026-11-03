@@ -17,18 +17,19 @@ import {
   tabSiteStatus,
   blockTab,
   quickBlockTab,
+  undoBlock,
+  recordAttempt,
   refreshBadge,
   dismissOffNotice,
 } from "./siteActions.js";
 import { syncRules } from "./rules.js";
 import { createMenus, durationForMenuItem } from "./contextMenu.js";
 import { markSessionStart, checkIn, noteAlive, HEARTBEAT_ALARM, HEARTBEAT_MINUTES } from "./offTracker.js";
-import { DEFAULT_DURATION_MS } from "./lockModel.js";
-
-const BLOCK_COMMAND = "block-current-site"; // must match "commands" in manifest.json
 
 const handlers = {
   add: (msg) => addSite(msg.value, msg.durationMs),
+  undo: (msg) => undoBlock(msg.domain),
+  attempt: (msg) => recordAttempt(msg.domain, msg.navType),
   remove: (msg) => removeSite(msg.domain),
   extend: (msg) => extendSite(msg.domain, msg.durationMs),
   relock: (msg) => relockSite(msg.domain, msg.durationMs),
@@ -115,19 +116,18 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === HEARTBEAT_ALARM) heartbeat();
 });
 
-// Right-click → "Block this site" → a duration.
+// Right-click → "Block this site" → a duration. The tab switches to the
+// countdown page, where a mistake can be undone for 30 seconds.
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   noteUse();
   const durationMs = durationForMenuItem(info.menuItemId);
   if (durationMs) quickBlockTab(tab, durationMs, info.pageUrl);
 });
 
-// Keyboard shortcut (Alt+Shift+L unless the user changed it) — blocks the
-// site in the current tab for the default 24 hours.
-chrome.commands.onCommand.addListener((command, tab) => {
-  noteUse();
-  if (command === BLOCK_COMMAND) quickBlockTab(tab, DEFAULT_DURATION_MS);
-});
+// The keyboard shortcut (Alt+Shift+L unless the user changed it) is the
+// manifest's "_execute_action" command: Chrome opens the popup for it, with
+// its "Block <this site>" button ready, so nothing is blocked unseen. There
+// is no event to handle here.
 
 // Runs every time the worker starts (Chrome stops it when idle and starts it
 // again for the next event). The first start after the extension has been

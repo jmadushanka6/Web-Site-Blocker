@@ -16,6 +16,8 @@ import {
   isValidExtendDuration,
   isValidExtension,
   computeNewLock,
+  newEntry,
+  canUndo,
   computeExtendedLockUntil,
   DEFAULT_DURATION_MS,
   DURATION_OPTIONS,
@@ -27,6 +29,7 @@ import { syncRules, hasSiteAccess } from "./rules.js";
 import { reloadTabsOn, getTab, getActiveTab, reloadTab } from "./tabs.js";
 import { getUnseenOffPeriods, acknowledgeOffPeriods } from "./offTracker.js";
 import { showAttention, flashBadge } from "./badge.js";
+import { shouldCount, logAttempt, startCounting, forgetAttempts } from "./attempts.js";
 
 export async function listSites() {
   const list = await getBlocklist();
@@ -61,14 +64,31 @@ export async function addSite(rawInput, durationMs) {
     // Already in the list but its timer had run out — treat this as a re-lock.
     Object.assign(existing, computeNewLock(dur));
   } else {
-    list.push({ domain, ...computeNewLock(dur) });
+    list.push(newEntry(domain, dur));
   }
   await setBlocklist(list);
   await syncRules();
+  if (!existing) await startCounting(domain);
   // A site that's new to the list may be open in tabs right now; reload
   // them so the block shows immediately. (A re-locked site was never
   // unblocked, so its tabs are already on the blocked page.)
   if (!existing) await reloadTabsOn(domain);
+  // isNew: only a new block can be undone (see undoBlock).
+  return { ok: true, domain, isNew: !existing };
+}
+
+// Takes back a block made moments ago, in case it was the wrong site: the
+// one removal allowed while a timer runs. It only works in a NEW block's
+// first 30 seconds (UNDO_MS in lockModel.js); a restarted timer, or any
+// block after that, keeps the usual rules.
+export async function undoBlock(domain) {
+  const list = await getBlocklist();
+  const entry = list.find((e) => e.domain === domain);
+  if (!entry) return { ok: false, error: t("errNotFound") };
+  if (!canUndo(entry)) return { ok: false, error: t("errUndoLate") };
+  await setBlocklist(list.filter((e) => e.domain !== domain));
+  await syncRules();
+  await forgetAttempts(domain);
   return { ok: true };
 }
 
@@ -90,6 +110,7 @@ export async function removeSite(domain) {
   }
   await setBlocklist(list.filter((e) => e.domain !== domain));
   await syncRules();
+  await forgetAttempts(domain);
   return { ok: true };
 }
 
@@ -104,7 +125,7 @@ export async function extendSite(domain, durationMs) {
   const entry = list.find((e) => e.domain === domain);
   if (!entry) return { ok: false, error: t("errNotFound") };
   if (!isLocked(entry)) {
-    return { ok: false, error: t("errAlreadyUnlocked") };
+    return { ok: false, error: t("errTimerEnded") };
   }
   if (!isValidExtension(entry, durationMs)) {
     return {
@@ -127,7 +148,7 @@ export async function relockSite(domain, durationMs) {
   const entry = list.find((e) => e.domain === domain);
   if (!entry) return { ok: false, error: t("errNotFound") };
   if (isLocked(entry)) {
-    return { ok: false, error: t("errStillLocked") };
+    return { ok: false, error: t("errTimerRunning") };
   }
   Object.assign(entry, computeNewLock(durationMs));
   await setBlocklist(list);
@@ -171,9 +192,9 @@ export async function blockTab(tabId, durationMs, pageUrl) {
   return { ok: true, domain, alreadyBlocked: false };
 }
 
-// blockTab for the right-click menu and the keyboard shortcut. No popup is
-// open there to show an error in, so a failure flashes the toolbar badge
-// (hovering the icon shows why).
+// blockTab for the right-click menu. No popup is open there to show an
+// error in, so a failure flashes the toolbar badge (hovering the icon shows
+// why). A mistake is undone from the countdown page the tab switches to.
 export async function quickBlockTab(tab, durationMs, pageUrl) {
   const target = tab && tab.id >= 0 ? tab : await getActiveTab();
   const r = target
@@ -181,6 +202,17 @@ export async function quickBlockTab(tab, durationMs, pageUrl) {
     : { ok: false, error: t("errNoTab") };
   if (!r.ok) await flashBadge("×", "#ff7a7a", t("badgeCouldnt", r.error), refreshBadge);
   return r;
+}
+
+// The blocked page has just been shown for `domain`. Count it as a try
+// unless it was only a reload, a step back, or the tab switching over as
+// the block began (see shouldCount in attempts.js). Only sites on the list
+// are counted, so a stray message can't invent counts for anything else.
+export async function recordAttempt(domain, navType) {
+  const entry = (await getBlocklist()).find((e) => e.domain === domain);
+  if (!shouldCount(entry, navType)) return { ok: true, counted: false };
+  await logAttempt(domain);
+  return { ok: true, counted: true };
 }
 
 // Keep the toolbar badge in step with the "it was switched off" notice.

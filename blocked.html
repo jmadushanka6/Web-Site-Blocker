@@ -47,9 +47,16 @@
     border-radius: 50%;
     background: linear-gradient(140deg, var(--accent), var(--accent-2));
     display: flex; align-items: center; justify-content: center;
-    font-size: 32px;
+    color: #fff;
     box-shadow: 0 10px 30px rgba(91,140,255,0.35);
   }
+  /* The padlock from the extension's icon: closed while the site is blocked
+     (timer running or ended), open once it's off the list. */
+  .lock-ring svg { width: 34px; height: 34px; }
+  .lock-ring .lock-open, .lock-ring.open .lock-closed { display: none; }
+  .lock-ring.open .lock-open { display: block; }
+  /* Timer ended: still locked, but nothing is counting down any more. */
+  .lock-ring.quiet { background: #3a4152; box-shadow: none; }
   h1 { font-size: 21px; margin: 0 0 6px; letter-spacing: 0.1px; }
   .dom {
     display: inline-block; margin: 2px 0 14px; padding: 4px 12px;
@@ -66,11 +73,65 @@
     padding: 16px 18px;
     margin-bottom: 6px;
   }
-  .status-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 8px; }
+  .status-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 8px; }
   .status-time { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; font-variant-numeric: tabular-nums; }
   .status-time.ready { color: #34d399; }
+  .status-time.ended { color: #c3c9d6; font-size: 17px; }
   .progress { height: 5px; background: rgba(255,255,255,0.08); border-radius: 100px; margin-top: 12px; overflow: hidden; }
   .progress .bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 1s linear; }
+
+  /* "Wrong site? Undo · 28 s" for 30 seconds after a new block */
+  .undo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; font-size: 13px; color: var(--muted); }
+  .undo[hidden] { display: none; }
+  .undo-btn {
+    padding: 7px 14px; border-radius: 9px; border: 1px solid var(--border); cursor: pointer;
+    background: rgba(255,255,255,0.06); color: var(--text);
+    font: inherit; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+  }
+  .undo-btn:hover { background: rgba(255,255,255,0.12); }
+  .undo-btn:disabled { opacity: 0.6; cursor: default; }
+  .undo-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .undo-btn[hidden] { display: none; }
+
+  /* "Visits blocked": how often the site was tried, and once the block has
+     run a week, a bar per day. */
+  .tries {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px 14px;
+    margin-top: 10px;
+    text-align: left;
+  }
+  .tries[hidden] { display: none; }
+  .tries .status-label { margin-bottom: 6px; }
+  .tries-figures { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .tries-total { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .tries-sub { font-size: 12.5px; color: var(--muted); }
+  .tries-soon { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+  .tries-soon:empty { display: none; }
+
+  .chart { position: relative; margin-top: 12px; }
+  .chart[hidden] { display: none; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart .bar-mark { fill: var(--accent); pointer-events: none; }
+  .chart .slot { fill: transparent; cursor: default; }
+  .chart .slot:hover + .bar-mark, .chart .bar-mark.hot { fill: var(--link); }
+  .chart .base { stroke: rgba(255,255,255,0.18); stroke-width: 1; }
+  .chart .grid { stroke: rgba(255,255,255,0.07); stroke-width: 1; stroke-dasharray: 2 3; }
+  .chart .axis { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .chart-tip {
+    position: absolute; top: 0; transform: translate(-50%, calc(-100% - 6px));
+    z-index: 1;
+    padding: 4px 8px; border-radius: 7px; white-space: nowrap; pointer-events: none;
+    background: #262b37; border: 1px solid var(--border); color: var(--text);
+    font-size: 12px; font-variant-numeric: tabular-nums;
+  }
+  .chart-tip[hidden] { display: none; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
 
   .hint { margin-top: 16px; font-size: 12px; color: var(--muted); line-height: 1.5; }
   .hint:empty { display: none; }
@@ -83,14 +144,22 @@
   .go:hover { background: var(--button-hover); }
   .go:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   .go[hidden] { display: none; }
+
+  /* Respect "reduce motion": no rising card or sliding bar. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
   <main class="card">
-    <div class="lock-ring" id="ring" aria-hidden="true">🔒</div>
+    <div class="lock-ring" id="ring" aria-hidden="true">
+      <svg class="lock-closed" viewBox="0 0 24 24"><path d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path fill="currentColor" fill-rule="evenodd" d="M7.5 10h9A2.5 2.5 0 0 1 19 12.5v6a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 18.5v-6A2.5 2.5 0 0 1 7.5 10Zm4.5 3.2a1.6 1.6 0 0 0-.8 3V18a.8.8 0 0 0 1.6 0v-1.8a1.6 1.6 0 0 0-.8-3Z"/></svg>
+      <svg class="lock-open" viewBox="0 0 24 24"><path d="M7.5 10V7.5a4.5 4.5 0 0 1 8.9-1" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path fill="currentColor" fill-rule="evenodd" d="M7.5 10h9A2.5 2.5 0 0 1 19 12.5v6a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 18.5v-6A2.5 2.5 0 0 1 7.5 10Zm4.5 3.2a1.6 1.6 0 0 0-.8 3V18a.8.8 0 0 0 1.6 0v-1.8a1.6 1.6 0 0 0-.8-3Z"/></svg>
+    </div>
     <h1 id="title" data-i18n="blkTitle">This site is blocked</h1>
     <div class="dom" id="dom"></div>
-    <p class="message" id="message" data-i18n="blkMessage">You blocked this to stay focused. It stays blocked, and can't be removed until the timer below runs out.</p>
+    <p class="message" id="message" data-i18n="blkMessage">You blocked this for a reason. You can remove it once the timer below runs out.</p>
 
     <div class="status">
       <div class="status-label" id="statusLabel" data-i18n="blkRemovableIn">Removable in</div>
@@ -98,7 +167,26 @@
       <div class="progress" aria-hidden="true"><div class="bar" id="bar" style="width:0%"></div></div>
     </div>
 
-    <p class="hint" id="hint" data-i18n="blkHint">You can make this block longer from the extension at any time. Removing it becomes possible when the timer ends.</p>
+    <div class="undo" id="undo" hidden>
+      <span id="undoAsk" data-i18n="undoAsk">Wrong site?</span>
+      <button class="undo-btn" id="undoBtn"></button>
+    </div>
+
+    <section class="tries" id="tries" aria-labelledby="triesLabel" hidden>
+      <div class="status-label" id="triesLabel" data-i18n="blkTriesLabel">Visits blocked</div>
+      <div class="tries-figures">
+        <span class="tries-total" id="triesTotal">0</span>
+        <span class="tries-sub" id="triesSub"></span>
+      </div>
+      <p class="tries-soon" id="triesSoon"></p>
+      <div class="chart" id="chart" hidden>
+        <svg id="chartSvg" aria-hidden="true" focusable="false"></svg>
+        <div class="chart-tip" id="chartTip" hidden></div>
+        <table class="sr-only" id="chartTable"></table>
+      </div>
+    </section>
+
+    <p class="hint" id="hint" data-i18n="blkHint">You can make the timer longer from the extension at any time. Removing the site becomes possible when the timer ends.</p>
     <a class="go" id="goLink" hidden></a>
   </main>
   <script type="module" src="blocked.js"></script>

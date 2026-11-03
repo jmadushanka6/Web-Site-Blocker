@@ -3,8 +3,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
-import { loadMessages, makeGetMessage } from "./i18nStub.js";
-import { t, remainingText, durationLabel, dateLocale } from "../i18n.js";
+import { loadMessages, makeGetMessage, setBrowserLanguages } from "./i18nStub.js";
+import { t, remainingText, durationLabel, dateLocale, fmtDay, fmtDateTime } from "../i18n.js";
 import { DURATION_OPTIONS } from "../lockModel.js";
 
 const langs = readdirSync(new URL("../_locales/", import.meta.url));
@@ -47,7 +47,7 @@ for (const lang of langs) {
       .join("\n");
     const used = new Set();
     for (const m of code.matchAll(/\bt\(\s*"([A-Za-z0-9_]+)"\s*[,)]/g)) used.add(m[1]);
-    // t(locked ? "extend" : "blockAgain", …)
+    // t(locked ? "extend" : "restartTimer", …)
     for (const m of code.matchAll(/\bt\([^"()]*\?\s*"(\w+)"\s*:\s*"(\w+)"/g)) used.add(m[1]).add(m[2]);
     for (const m of code.matchAll(/data-i18n(?:-[a-z-]+)?="([A-Za-z0-9_]+)"/g)) used.add(m[1]);
     for (const m of code.matchAll(/__MSG_([A-Za-z0-9_]+)__/g)) used.add(m[1]);
@@ -72,7 +72,10 @@ test("time left and durations, in English", () => {
 
 test("German reads naturally", () => {
   const de = makeGetMessage(loadMessages("de"));
-  assert.equal(de("timeLeft", ["1 Tg. 2 Std."]), "🔒 noch 1 Tg. 2 Std.");
+  assert.equal(de("badgeRemovableIn", ["1 Tg. 2 Std."]), "Entfernbar in 1 Tg. 2 Std.");
+  assert.equal(de("extendOption", ["7 Tage", "Mo., 9. Nov."]), "7 Tage ab jetzt · Mo., 9. Nov.");
+  assert.equal(de("restartTimer"), "Timer neu starten");
+  assert.equal(de("badgeEnded"), "Timer abgelaufen");
   assert.equal(de("offTitleN", ["3"]), "Der Blocker war 3-mal ausgeschaltet");
   assert.equal(de("quickBlock", ["x.com"]), "x.com sperren");
   assert.equal(
@@ -80,3 +83,28 @@ test("German reads naturally", () => {
     "Er war heute von etwa 10:02 bis 10:40 Uhr ausgeschaltet (38 Min.). In dieser Zeit ließen sich deine gesperrten Websites öffnen."
   );
 });
+
+test("dates come out in the browser's own variant of the messages' language", () => {
+  const english = globalThis.chrome.i18n.getMessage;
+  const jan5 = new Date(2027, 0, 5, 9, 5).getTime();
+  try {
+    globalThis.chrome.i18n.getMessage = makeGetMessage(loadMessages("de"));
+    setBrowserLanguages(["de-AT", "de", "en"]);
+    assert.equal(dateLocale(), "de-AT");
+    assert.equal(fmtDay(jan5), "Di., 5. Jän.");
+    setBrowserLanguages(["de"]);
+    assert.equal(dateLocale(), "de-DE", "no region named: the messages' default");
+    assert.equal(fmtDay(jan5), "Di., 5. Jan.");
+    assert.equal(fmtDateTime(jan5), "Di., 5. Jan., 09:05");
+
+    globalThis.chrome.i18n.getMessage = english;
+    setBrowserLanguages(["en-US", "en"]);
+    assert.equal(dateLocale(), "en-US");
+    setBrowserLanguages(["fr-FR", "de-AT"]);
+    assert.equal(dateLocale(), "en-GB", "another language: the messages' default");
+  } finally {
+    globalThis.chrome.i18n.getMessage = english;
+    setBrowserLanguages(["en-GB", "en"]);
+  }
+});
+

@@ -6,12 +6,16 @@ const root = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
 const manifest = JSON.parse(read("manifest.json"));
 
-test("name, summary and shortcut come from the message files", () => {
+test("name and summary come from the message files", () => {
   // Their length limits are checked per language in i18n.test.js.
   assert.equal(manifest.default_locale, "en");
   assert.equal(manifest.name, "__MSG_extName__");
   assert.equal(manifest.description, "__MSG_extDescription__");
-  assert.match(manifest.commands["block-current-site"].description, /^__MSG_\w+__$/);
+});
+
+test("Alt+Shift+L opens the popup rather than blocking anything by itself", () => {
+  assert.deepEqual(Object.keys(manifest.commands), ["_execute_action"]);
+  assert.equal(manifest.commands._execute_action.suggested_key.default, "Alt+Shift+L");
 });
 
 test("the package script ships the message files", () => {

@@ -3,7 +3,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import "./i18nStub.js";
-import { dayPhrase, fmtRange, fmtDuration, describeOffPeriods } from "../popupRender.js";
+import { dayPhrase, fmtRange, fmtDuration, describeOffPeriods, extendLabel } from "../popupRender.js";
+import { fmtDateTime } from "../i18n.js";
 
 const MIN = 60 * 1000;
 const HOUR = 60 * MIN;
@@ -74,4 +75,13 @@ test("several periods: the count, the total and the latest", () => {
 test("overnight", () => {
   const d = describeOffPeriods([{ offAt: at(27, 22, 15), onAt: at(28, 8, 10) }], NOW);
   assert.match(d.body, /^It was off from about (22:15|10:15 PM) yesterday to 0?8:10( AM)? today \(9 hr 55 min\)/);
+});
+
+test("fmtDateTime names the day and the time", () => {
+  assert.equal(fmtDateTime(at(3 + 31, 11, 40)), "Tue 3 Nov, 11:40");
+});
+
+test("an Extend choice says the day it would end on", () => {
+  const sevenDays = { key: "7d", ms: 7 * 24 * HOUR };
+  assert.equal(extendLabel(sevenDays, at(2 + 31, 10, 0)), "7 days from now · Mon 9 Nov");
 });

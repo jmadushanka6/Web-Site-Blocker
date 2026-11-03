@@ -6,9 +6,13 @@ import { api } from "./popupApi.js";
 import { buildItem, buildEmptyState, populateSelect, buildQuickAdd, buildOffNotice } from "./popupRender.js";
 import { t, applyI18n } from "./i18n.js";
 import { setUpAsk } from "./popupAsk.js";
+import { setUpReview } from "./popupReview.js";
+import { reviewReasons } from "./review.js";
+import { normalizeDomain, isBroadSuffix, isLocked } from "./lockModel.js";
 
 applyI18n();
 
+const addCard = document.getElementById("addCard");
 const urlInput = document.getElementById("url");
 const addDur = document.getElementById("addDur");
 const addBtn = document.getElementById("addBtn");
@@ -24,12 +28,15 @@ const offNoticeEl = document.getElementById("offNotice");
 let durationOptions = [];
 let extendOptions = [];
 let msgTimer = null;
-let rows = []; // one { el, refresh(now) } per site currently on screen
+let listCache = []; // the block list as last shown
+let rows = []; // one { el, refresh(now), refreshUndo(now) } per site currently on screen
 let renderSeq = 0; // only the newest render() is allowed to touch the DOM
 let incognitoBlocked = false; // true when blocks don't reach Incognito windows
 let activeTabId = null; // the tab the popup was opened over
 let quickDomain = null; // that tab's site, when it can be blocked in one click
 let offNoticeKey = ""; // what the "switched off" notice currently shows
+// What the notices below the form depend on, as of the last render.
+let noticeState = { off: false, siteCount: 0, accessLimited: false };
 
 function showMsg(text, kind) {
   clearTimeout(msgTimer);
@@ -58,6 +65,43 @@ async function handleRemove(domain) {
   const r = await api.remove(domain);
   if (r.ok) { showMsg(t("msgRemoved", domain), "ok"); render(); }
   else showMsg(r.error, "err");
+}
+
+async function handleUndo(domain) {
+  const r = await api.undo(domain);
+  if (r.ok) { showMsg(t("msgUndone", domain), "ok"); refreshQuickAdd(); }
+  else showMsg(r.error, "err");
+  render();
+}
+
+// The review takes the add form's place while it's up.
+const review = setUpReview({
+  onShow: () => {
+    showMsg("");
+    addCard.hidden = true;
+    listEl.classList.add("dimmed");
+    listEl.inert = true;
+  },
+  onHide: () => {
+    addCard.hidden = false;
+    listEl.classList.remove("dimmed");
+    listEl.inert = false;
+    renderQuickAdd(); // its button was disabled by the click that opened the review
+    urlInput.focus();
+  },
+});
+
+// Every new block from the popup starts here: straight away, or after the
+// review when review.js finds a reason for a second look. Either way, the
+// block can then be undone for 30 seconds.
+async function startBlock({ domain, input = null, durationMs, perform }) {
+  if (!durationOptions.length) await render(); // clicked before the popup had loaded
+  const reasons = reviewReasons({ domain, input, durationMs, listLength: listCache.length });
+  if (reasons.length === 0) {
+    perform(durationMs);
+    return;
+  }
+  review.show({ domain, input, durationMs, options: durationOptions, confirm: perform });
 }
 
 // Rebuilt only when what it says changes, so it isn't re-announced to
@@ -97,8 +141,12 @@ async function refreshQuickAdd() {
   renderQuickAdd();
 }
 
-async function handleQuickBlock() {
-  const r = await api.blockTab(activeTabId, Number(addDur.value) || undefined);
+function handleQuickBlock() {
+  startBlock({ domain: quickDomain, durationMs: Number(addDur.value) || undefined, perform: quickBlock });
+}
+
+async function quickBlock(durationMs) {
+  const r = await api.blockTab(activeTabId, durationMs);
   if (r.ok) {
     showMsg(t("msgBlockedSite", r.domain), "ok");
     quickDomain = null;
@@ -117,6 +165,7 @@ async function render() {
   const res = await api.list();
   if (seq !== renderSeq) return; // a newer render is already on its way
   if (!res.ok) { showMsg(res.error || t("errGeneric"), "err"); return; }
+  listCache = res.list || [];
   durationOptions = res.durations || durationOptions;
   extendOptions = res.extendOptions || extendOptions;
   if (!addDur.options.length) populateSelect(addDur, durationOptions);
@@ -131,10 +180,13 @@ async function render() {
   });
 
   renderCount(list.length);
-  updateIncognitoNotice(list.length);
-  ask.update(list.length, !!(res.offPeriods && res.offPeriods.length) || !incognitoEl.hidden);
-  // Restricted site access: those sites fall back to a plain block page.
-  accessNoticeEl.hidden = !list.some((e) => e.siteAccess === false);
+  noticeState = {
+    off: !!(res.offPeriods && res.offPeriods.length),
+    siteCount: list.length,
+    // Restricted site access: those sites fall back to a plain block page.
+    accessLimited: list.some((e) => e.siteAccess === false),
+  };
+  updateNotices();
 
   const scrollTop = listEl.scrollTop; // keep the user's place in a long list
   listEl.innerHTML = "";
@@ -146,7 +198,7 @@ async function render() {
   }
 
   const opts = { durationOptions, extendOptions };
-  const callbacks = { onExtend: handleExtend, onRelock: handleRelock, onRemove: handleRemove };
+  const callbacks = { onExtend: handleExtend, onRelock: handleRelock, onRemove: handleRemove, onUndo: handleUndo };
   for (const entry of list) {
     const row = buildItem(entry, now, opts, callbacks);
     rows.push(row);
@@ -163,11 +215,27 @@ function tick() {
   if (rows.some((row) => !row.refresh(now))) render();
 }
 
+// A new block's 30-second "Undo" counts down every second.
+function tickUndo() {
+  const now = Date.now();
+  for (const row of rows) row.refreshUndo(now);
+}
+
 async function add() {
   const val = urlInput.value.trim();
   if (!val) return;
   const durationMs = Number(addDur.value) || undefined;
-  const r = await api.add(val, durationMs);
+  const domain = normalizeDomain(val);
+  const listed = domain && listCache.find((e) => e.domain === domain);
+  // Input the background will turn down goes straight to it, for its message.
+  if (!domain || isBroadSuffix(domain) || (listed && isLocked(listed))) {
+    finishAdd(await api.add(val, durationMs));
+    return;
+  }
+  startBlock({ domain, input: val, durationMs, perform: async (ms) => finishAdd(await api.add(val, ms)) });
+}
+
+function finishAdd(r) {
   if (r.ok) { showMsg(t("msgBlocked"), "ok"); urlInput.value = ""; render(); refreshQuickAdd(); }
   else showMsg(r.error, "err");
   urlInput.focus();
@@ -186,15 +254,22 @@ function incognitoDismissed() {
   }
 }
 
-function updateIncognitoNotice(siteCount) {
-  incognitoEl.hidden = !(incognitoBlocked && siteCount > 0 && !incognitoDismissed());
+// Chrome caps popups at 600px tall, so only the most important notice shows
+// at a time: switched off (at the very top), then Incognito, then limited
+// site access, then the rating prompt. Dismissing one lets the next through.
+function updateNotices() {
+  const { off, siteCount, accessLimited } = noticeState;
+  const incognito = incognitoBlocked && siteCount > 0 && !incognitoDismissed();
+  incognitoEl.hidden = off || !incognito;
+  accessNoticeEl.hidden = off || incognito || !accessLimited;
+  ask.update(siteCount, off || incognito || accessLimited);
 }
 
 function checkIncognitoAccess() {
   if (!(chrome.extension && chrome.extension.isAllowedIncognitoAccess)) return;
   chrome.extension.isAllowedIncognitoAccess((allowed) => {
     incognitoBlocked = !allowed;
-    updateIncognitoNotice(rows.length);
+    updateNotices();
   });
 }
 
@@ -209,7 +284,7 @@ document.getElementById("incognitoDismiss").addEventListener("click", () => {
   } catch {
     // Storage unavailable: the notice just comes back next time.
   }
-  incognitoEl.hidden = true;
+  updateNotices();
 });
 
 addBtn.addEventListener("click", add);
@@ -223,7 +298,7 @@ checkIncognitoAccess();
   await render(); // also fills the lock-length dropdown the one-click button uses
   activeTabId = await api.activeTabId();
   await refreshQuickAdd();
-  const shortcut = await api.blockShortcut();
+  const shortcut = await api.popupShortcut();
   if (shortcut) tipEl.textContent = t("tipShortcut", shortcut);
 })();
 
@@ -233,3 +308,4 @@ api.onOffLogChange(render);
 
 // Keep the countdowns live while the popup is open.
 setInterval(tick, 15000);
+setInterval(tickUndo, 1000);

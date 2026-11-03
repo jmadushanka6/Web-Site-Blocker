@@ -3,13 +3,10 @@
     "message": "Locked Site Blocker – Websites sperren mit Timer"
   },
   "extDescription": {
-    "message": "Sperrt ablenkende Websites samt Subdomains mit einem Timer. Verlängern geht jederzeit, entfernen erst nach Ablauf des Timers."
+    "message": "Blockiert ablenkende Websites samt Subdomains mit Timer. Verlängern geht jederzeit, Entfernen erst nach Ablauf des Timers."
   },
   "appName": {
     "message": "Locked Site Blocker"
-  },
-  "cmdBlock": {
-    "message": "Aktuelle Website sperren (für 24 Stunden)"
   },
   "dateLocale": {
     "message": "de-DE"
@@ -67,8 +64,8 @@
       }
     }
   },
-  "timeLeft": {
-    "message": "🔒 noch $P1$",
+  "badgeRemovableIn": {
+    "message": "Entfernbar in $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -76,7 +73,7 @@
     }
   },
   "popupSub": {
-    "message": "Sperrt eine Website samt Subdomains, bis ihr Timer abläuft."
+    "message": "Sperrt Websites samt Subdomains. Entfernen erst, wenn der Timer abgelaufen ist."
   },
   "labelSite": {
     "message": "Zu sperrende Website"
@@ -85,7 +82,7 @@
     "message": "z. B. facebook.com"
   },
   "labelLength": {
-    "message": "Sperrdauer"
+    "message": "Timer"
   },
   "block": {
     "message": "Sperren"
@@ -106,13 +103,13 @@
     "message": "Gesperrte Websites"
   },
   "footerExtend": {
-    "message": "Verlängern fügt immer nur Zeit hinzu – nie umgekehrt."
+    "message": "Timer lassen sich verlängern, aber nie verkürzen."
   },
   "tipDefault": {
     "message": "Tipp: Rechtsklick auf eine Seite → Diese Website sperren."
   },
   "tipShortcut": {
-    "message": "Tipp: Rechtsklick auf eine Seite → Diese Website sperren, oder $P1$ drücken.",
+    "message": "Tipp: Rechtsklick auf eine Seite → Diese Website sperren. $P1$ öffnet dieses Fenster.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -133,11 +130,11 @@
       }
     }
   },
-  "unlocked": {
-    "message": "✓ Entsperrt"
+  "badgeEnded": {
+    "message": "Timer abgelaufen"
   },
   "ariaProgress": {
-    "message": "Sperrfortschritt für $P1$",
+    "message": "Timer-Fortschritt für $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -145,7 +142,7 @@
     }
   },
   "ariaNewLength": {
-    "message": "Neue Sperrdauer für $P1$",
+    "message": "Neuer Timer für $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -153,7 +150,7 @@
     }
   },
   "ariaLength": {
-    "message": "Sperrdauer für $P1$",
+    "message": "Timer für $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -163,8 +160,19 @@
   "extend": {
     "message": "Verlängern"
   },
-  "blockAgain": {
-    "message": "Erneut sperren"
+  "extendOption": {
+    "message": "$P1$ ab jetzt · $P2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "restartTimer": {
+    "message": "Timer neu starten"
   },
   "ariaExtend": {
     "message": "$P1$ verlängern",
@@ -174,8 +182,8 @@
       }
     }
   },
-  "ariaBlockAgain": {
-    "message": "$P1$ erneut sperren",
+  "ariaRestart": {
+    "message": "Timer für $P1$ neu starten",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -183,7 +191,7 @@
     }
   },
   "maxed": {
-    "message": "Bereits die längste verfügbare Sperre"
+    "message": "Bereits der längste Timer"
   },
   "remove": {
     "message": "Entfernen"
@@ -221,6 +229,80 @@
   "orType": {
     "message": "oder Website eintippen"
   },
+  "reviewTitle": {
+    "message": "$P1$ sperren?",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewWhen": {
+    "message": "Entfernen kannst du die Sperre frühestens am $P1$. Danach bleibt die Website gesperrt, bis du sie entfernst.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewNever": {
+    "message": "Den Timer kannst du verlängern, aber nie verkürzen."
+  },
+  "reviewPath": {
+    "message": "Gesperrt wird ganz $P1$, nicht nur $P2$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "reviewGoogle": {
+    "message": "Damit sind auch Gmail, Drive, Docs und die Google-Anmeldung gesperrt."
+  },
+  "reviewAmazon": {
+    "message": "Damit ist auch die AWS-Konsole gesperrt."
+  },
+  "reviewSubdomains": {
+    "message": "Sperrt auch alle Subdomains von $P1$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewConfirm": {
+    "message": "Für $P1$ sperren",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewCancel": {
+    "message": "Abbrechen"
+  },
+  "undoAsk": {
+    "message": "Falsche Website?"
+  },
+  "undoButton": {
+    "message": "Rückgängig · $P1$ s",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ariaUndo": {
+    "message": "Sperre von $P1$ rückgängig machen",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
   "msgBlocked": {
     "message": "Gesperrt."
   },
@@ -241,7 +323,7 @@
     }
   },
   "msgRelocked": {
-    "message": "$P1$ erneut gesperrt.",
+    "message": "Timer für $P1$ neu gestartet.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -250,6 +332,14 @@
   },
   "msgRemoved": {
     "message": "$P1$ entfernt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "msgUndone": {
+    "message": "$P1$ ist nicht mehr gesperrt.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -455,7 +545,7 @@
     "message": "Nicht gefunden."
   },
   "errLocked": {
-    "message": "Gesperrt. Entfernen ist in $P1$ möglich.",
+    "message": "Der Timer läuft noch. Entfernen kannst du die Website in $P1$.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -465,14 +555,14 @@
   "errDuration": {
     "message": "Wähle eine gültige Dauer."
   },
-  "errAlreadyUnlocked": {
-    "message": "Diese Website ist bereits entsperrt – nutze stattdessen „Erneut sperren“."
+  "errTimerEnded": {
+    "message": "Der Timer dieser Website ist abgelaufen – nutze „Timer neu starten“."
   },
   "errShorter": {
-    "message": "Verlängern geht nur auf eine längere Sperre als die Restzeit – wähle eine größere Option."
+    "message": "Wähle eine längere Option: Ein Timer lässt sich nur verlängern, nie verkürzen."
   },
-  "errStillLocked": {
-    "message": "Diese Website ist noch gesperrt – nutze stattdessen „Verlängern“."
+  "errTimerRunning": {
+    "message": "Der Timer dieser Website läuft noch – nutze stattdessen „Verlängern“."
   },
   "errTabGone": {
     "message": "Dieser Tab ist nicht mehr geöffnet."
@@ -482,6 +572,9 @@
   },
   "errNoTab": {
     "message": "Es gibt keinen Tab zum Sperren."
+  },
+  "errUndoLate": {
+    "message": "Zu spät: Eine neue Sperre lässt sich nur in den ersten 30 Sekunden rückgängig machen."
   },
   "badgeCouldnt": {
     "message": "Sperren fehlgeschlagen: $P1$",
@@ -515,30 +608,33 @@
     "message": "Entfernbar in"
   },
   "blkMessage": {
-    "message": "Du hast diese Website gesperrt, um fokussiert zu bleiben. Sie bleibt gesperrt und lässt sich erst entfernen, wenn der Timer unten abgelaufen ist."
+    "message": "Du hattest einen Grund, diese Website zu sperren. Entfernen kannst du sie erst, wenn der Timer abgelaufen ist."
   },
   "blkHint": {
-    "message": "In der Erweiterung kannst du die Sperre jederzeit verlängern. Entfernen ist möglich, sobald der Timer abgelaufen ist."
+    "message": "In der Erweiterung kannst du den Timer jederzeit verlängern. Entfernen ist möglich, sobald der Timer abgelaufen ist."
   },
   "blkExpiredTitle": {
-    "message": "Diese Sperre ist abgelaufen"
+    "message": "Timer abgelaufen – weiterhin gesperrt"
   },
   "blkStatus": {
     "message": "Status"
   },
-  "blkRemovableNow": {
-    "message": "Jetzt entfernbar"
+  "blkTimer": {
+    "message": "Timer"
   },
-  "blkExpiredMessage": {
-    "message": "$P1$ ist weiterhin gesperrt, aber der Timer ist abgelaufen.",
+  "blkEndedAt": {
+    "message": "Abgelaufen · $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
       }
     }
   },
+  "blkExpiredMessage": {
+    "message": "Die Website bleibt gesperrt, bis du sie entfernst."
+  },
   "blkExpiredHint": {
-    "message": "Öffne die Erweiterung, um die Website zu entfernen oder erneut zu sperren."
+    "message": "Öffne Locked Site Blocker, um den Timer neu zu starten oder die Website zu entfernen."
   },
   "blkRemovedTitle": {
     "message": "Nicht mehr gesperrt"
@@ -561,6 +657,55 @@
         "content": "$1"
       }
     }
+  },
+  "blkTriesLabel": {
+    "message": "Gesperrte Aufrufe",
+    "description": "Heading over how many times the blocked site was tried."
+  },
+  "blkTriesSub": {
+    "message": "heute $P1$ · gezählt seit $P2$",
+    "description": "$1 is today's count, $2 the day counting started, e.g. Tue 27 Oct.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "blkTriesSoon": {
+    "message": "Ab $P1$ erscheint hier ein Diagramm pro Tag.",
+    "description": "$1 is the day the daily chart starts showing, e.g. Tue 10 Nov.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkTriesChart": {
+    "message": "Gesperrte Aufrufe pro Tag, letzte $P1$ Tage",
+    "description": "Caption of the daily chart's table, for screen readers. $1 is the number of days.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkTriesDay": {
+    "message": "$P1$: $P2$",
+    "description": "Chart tooltip. $1 is a day, $2 that day's count.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "blkToday": {
+    "message": "Heute"
   },
   "cdD": {
     "message": "$P1$ Tg. $P2$ Std. $P3$ Min.",

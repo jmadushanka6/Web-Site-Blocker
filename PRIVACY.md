@@ -1,6 +1,6 @@
 # Privacy policy — Locked Site Blocker
 
-_Last updated: 1 November 2026_ · [Deutsche Fassung unten](#datenschutzerklärung-deutsch)
+_Last updated: 3 November 2026_ · [Deutsche Fassung unten](#datenschutzerklärung-deutsch)
 
 Locked Site Blocker is a Chrome extension that blocks websites you choose. In
 short: everything it knows stays in your browser, and nothing is collected or
@@ -8,8 +8,12 @@ shared.
 
 ## What the extension stores
 
-- The list of websites you block and, for each one, when you added it and when
-  its lock ends.
+- The list of websites you block and, for each one, when you first added it,
+  when its current timer started and when it ends.
+- For each site on that list, how many times it was opened and stopped by the
+  block, per day for the last 60 days plus a running total. Nothing about the
+  pages themselves is kept, only the counts, and they're deleted when you
+  remove the site.
 - Whether you've dismissed the Incognito notice in the extension's popup, when
   you first opened the popup, and whether you've answered or dismissed its
   one-time "Is the blocker helping you?" prompt.
@@ -26,10 +30,11 @@ synced to your Google account or to other devices.
 - It doesn't collect, transmit, sell or share any data. It has no servers and
   makes no network requests of its own.
 - It doesn't read, record or change the content of the pages you visit, and it
-  doesn't keep a history of your browsing. The only time it looks at a page's
+  doesn't keep a history of your browsing (beyond the daily counts above, for
+  sites you've blocked). The only time it looks at a page's
   address is to block the site you're on: when you open its popup (to offer a
-  one-click "Block" button for that site), or when you use its right-click menu
-  or keyboard shortcut. The address isn't kept unless you block the site, and
+  one-click "Block" button for that site, which its keyboard shortcut also
+  opens), or when you use its right-click menu. The address isn't kept unless you block the site, and
   then only the site's name goes on your list.
 - It has no account, ads, analytics or tracking, and it doesn't run remote code.
 - The popup may show a one-time prompt with buttons to rate the extension or
@@ -69,7 +74,7 @@ Questions about this policy: [your support email]
 
 ## Datenschutzerklärung (Deutsch)
 
-_Stand: 1. November 2026_
+_Stand: 3. November 2026_
 
 Locked Site Blocker ist eine Chrome-Erweiterung, die Websites sperrt, die du
 auswählst. Kurz gesagt: Alles, was sie weiß, bleibt in deinem Browser. Es
@@ -77,8 +82,12 @@ werden keine Daten erhoben oder weitergegeben.
 
 ### Was die Erweiterung speichert
 
-- Die Liste der Websites, die du sperrst, und für jede, wann du sie
-  hinzugefügt hast und wann ihre Sperre endet.
+- Die Liste der Websites, die du sperrst, und für jede, wann du sie zuerst
+  hinzugefügt hast, wann ihr aktueller Timer begann und wann er endet.
+- Für jede Website auf dieser Liste, wie oft sie aufgerufen und von der Sperre
+  aufgehalten wurde – pro Tag für die letzten 60 Tage und insgesamt. Von den
+  Seiten selbst wird nichts gespeichert, nur die Anzahl, und sie wird gelöscht,
+  wenn du die Website entfernst.
 - Ob du den Inkognito-Hinweis im Erweiterungsfenster geschlossen hast, wann
   du das Fenster zum ersten Mal geöffnet hast und ob du die einmalige Frage
   „Hilft dir der Blocker?“ beantwortet oder geschlossen hast.
@@ -95,10 +104,11 @@ werden weder mit deinem Google-Konto noch mit anderen Geräten synchronisiert.
 - Sie erhebt, überträgt, verkauft oder teilt keine Daten. Sie hat keine Server
   und stellt selbst keine Netzwerkanfragen.
 - Sie liest, speichert oder verändert keine Inhalte der Seiten, die du
-  besuchst, und führt keinen Browserverlauf. Die Adresse einer Seite sieht sie
+  besuchst, und führt keinen Browserverlauf (abgesehen von der täglichen
+  Anzahl oben, für Websites, die du gesperrt hast). Die Adresse einer Seite sieht sie
   nur, wenn du die Website sperren willst, auf der du gerade bist: beim Öffnen
-  des Erweiterungsfensters (für den Ein-Klick-Knopf), über das Rechtsklick-Menü
-  oder per Tastenkürzel. Die Adresse wird nicht gespeichert, außer du sperrst
+  des Erweiterungsfensters (für den Ein-Klick-Button; das Tastenkürzel öffnet es
+  ebenfalls) oder über das Rechtsklick-Menü. Die Adresse wird nicht gespeichert, außer du sperrst
   die Website – dann landet nur ihr Name auf deiner Liste.
 - Kein Konto, keine Werbung, keine Analyse, kein Tracking, kein nachgeladener
   Code.

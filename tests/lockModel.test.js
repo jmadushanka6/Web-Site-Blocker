@@ -13,6 +13,10 @@ import {
   findLockedCover,
   migrateEntry,
   computeNewLock,
+  newEntry,
+  undoMsLeft,
+  canUndo,
+  UNDO_MS,
   computeExtendedLockUntil,
   isValidExtension,
   formatRemaining,
@@ -143,4 +147,24 @@ test("formatRemaining rounds up to the minute", () => {
   assert.equal(formatRemaining(59 * MIN + 1), "1h 0m");
   assert.equal(formatRemaining(90 * MIN), "1h 30m");
   assert.equal(formatRemaining(DAY + 2 * HOUR), "1d 2h");
+});
+
+test("a new block can be undone for its first 30 seconds only", () => {
+  const entry = newEntry("x.com", DAY, NOW);
+  assert.deepEqual(entry, { domain: "x.com", createdAt: NOW, addedAt: NOW, lockUntil: NOW + DAY });
+  assert.equal(UNDO_MS, 30 * 1000);
+  assert.equal(undoMsLeft(entry, NOW), UNDO_MS);
+  assert.equal(undoMsLeft(entry, NOW + 12_000), 18_000);
+  assert.ok(canUndo(entry, NOW + UNDO_MS - 1));
+  assert.ok(!canUndo(entry, NOW + UNDO_MS));
+  assert.ok(!canUndo(entry, NOW + DAY));
+});
+
+test("a restarted timer, an old entry or a clock set back can't be undone", () => {
+  const restarted = { ...newEntry("x.com", DAY, NOW - 2 * DAY), ...computeNewLock(DAY, NOW) };
+  assert.ok(!canUndo(restarted, NOW + 1000), "restarted timer");
+  assert.ok(!canUndo({ domain: "x.com", addedAt: NOW, lockUntil: NOW + DAY }, NOW + 1000), "entry without createdAt");
+  assert.ok(!canUndo(newEntry("x.com", DAY, NOW), NOW - 1000), "clock set back");
+  assert.ok(!canUndo(null, NOW));
+  assert.equal(undoMsLeft(undefined, NOW), 0);
 });

@@ -658,6 +658,55 @@
       }
     }
   },
+  "blkTriesLabel": {
+    "message": "Gesperrte Aufrufe",
+    "description": "Heading over how many times the blocked site was tried."
+  },
+  "blkTriesSub": {
+    "message": "heute $P1$ · gezählt seit $P2$",
+    "description": "$1 is today's count, $2 the day counting started, e.g. Tue 27 Oct.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "blkTriesSoon": {
+    "message": "Ab $P1$ erscheint hier ein Diagramm pro Tag.",
+    "description": "$1 is the day the daily chart starts showing, e.g. Tue 10 Nov.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkTriesChart": {
+    "message": "Gesperrte Aufrufe pro Tag, letzte $P1$ Tage",
+    "description": "Caption of the daily chart's table, for screen readers. $1 is the number of days.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "blkTriesDay": {
+    "message": "$P1$: $P2$",
+    "description": "Chart tooltip. $1 is a day, $2 that day's count.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "blkToday": {
+    "message": "Heute"
+  },
   "cdD": {
     "message": "$P1$ Tg. $P2$ Std. $P3$ Min.",
     "placeholders": {

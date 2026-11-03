@@ -29,6 +29,7 @@ import { syncRules, hasSiteAccess } from "./rules.js";
 import { reloadTabsOn, getTab, getActiveTab, reloadTab } from "./tabs.js";
 import { getUnseenOffPeriods, acknowledgeOffPeriods } from "./offTracker.js";
 import { showAttention, flashBadge } from "./badge.js";
+import { shouldCount, logAttempt, startCounting, forgetAttempts } from "./attempts.js";
 
 export async function listSites() {
   const list = await getBlocklist();
@@ -67,6 +68,7 @@ export async function addSite(rawInput, durationMs) {
   }
   await setBlocklist(list);
   await syncRules();
+  if (!existing) await startCounting(domain);
   // A site that's new to the list may be open in tabs right now; reload
   // them so the block shows immediately. (A re-locked site was never
   // unblocked, so its tabs are already on the blocked page.)
@@ -86,6 +88,7 @@ export async function undoBlock(domain) {
   if (!canUndo(entry)) return { ok: false, error: t("errUndoLate") };
   await setBlocklist(list.filter((e) => e.domain !== domain));
   await syncRules();
+  await forgetAttempts(domain);
   return { ok: true };
 }
 
@@ -107,6 +110,7 @@ export async function removeSite(domain) {
   }
   await setBlocklist(list.filter((e) => e.domain !== domain));
   await syncRules();
+  await forgetAttempts(domain);
   return { ok: true };
 }
 
@@ -198,6 +202,17 @@ export async function quickBlockTab(tab, durationMs, pageUrl) {
     : { ok: false, error: t("errNoTab") };
   if (!r.ok) await flashBadge("×", "#ff7a7a", t("badgeCouldnt", r.error), refreshBadge);
   return r;
+}
+
+// The blocked page has just been shown for `domain`. Count it as a try
+// unless it was only a reload, a step back, or the tab switching over as
+// the block began (see shouldCount in attempts.js). Only sites on the list
+// are counted, so a stray message can't invent counts for anything else.
+export async function recordAttempt(domain, navType) {
+  const entry = (await getBlocklist()).find((e) => e.domain === domain);
+  if (!shouldCount(entry, navType)) return { ok: true, counted: false };
+  await logAttempt(domain);
+  return { ok: true, counted: true };
 }
 
 // Keep the toolbar badge in step with the "it was switched off" notice.

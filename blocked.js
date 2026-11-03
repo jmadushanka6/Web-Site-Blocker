@@ -14,9 +14,16 @@
 // has ended but the site is STILL blocked until it's removed) and removed
 // (no longer on the list at all). For the first 30 seconds of a new block,
 // the locked state also offers "Wrong site? Undo".
+//
+// While the site is blocked, the page also shows how often it was tried
+// ("Visits blocked", see attempts.js and triesView.js). Each showing of the
+// page asks the background to count one; the background decides whether
+// it was a real try, and the panel follows the counts in storage.
 
 import { t, applyI18n, fmtDateTime } from "./i18n.js";
 import { undoMsLeft } from "./lockModel.js";
+import { ATTEMPTS } from "./attempts.js";
+import { renderTries } from "./triesView.js";
 
 applyI18n();
 
@@ -39,11 +46,24 @@ const undoEl = document.getElementById("undo");
 const undoAskEl = document.getElementById("undoAsk");
 const undoBtn = document.getElementById("undoBtn");
 
+const tries = {
+  panel: document.getElementById("tries"),
+  total: document.getElementById("triesTotal"),
+  sub: document.getElementById("triesSub"),
+  soon: document.getElementById("triesSoon"),
+  chart: document.getElementById("chart"),
+  svg: document.getElementById("chartSvg"),
+  tip: document.getElementById("chartTip"),
+  table: document.getElementById("chartTable"),
+};
+
 domEl.textContent = domain;
 
 let tickHandle = null;
 let liveEntry = null; // the site's entry as stored, once it has been read
 let undoError = ""; // why an undo failed, shown in place of the button
+let triesRecord = null; // this site's attempt counts, once read
+let blocked = true; // false once the site is off the list
 
 // "Wrong site? Undo · 28 s" while a new block can still be taken back.
 function renderUndo(now) {
@@ -98,6 +118,11 @@ function renderLocked(remaining) {
   renderUndo(Date.now());
 }
 
+function showTries() {
+  if (blocked && hasDomain) renderTries(tries, triesRecord);
+  else tries.panel.hidden = true;
+}
+
 // The timer has run out, but the site stays blocked until it's removed, so
 // this keeps a closed lock and never reads as "unlocked".
 function renderExpired() {
@@ -119,6 +144,8 @@ function renderExpired() {
 function renderRemoved() {
   clearTimeout(tickHandle);
   undoEl.hidden = true;
+  blocked = false;
+  tries.panel.hidden = true;
   document.title = t("blkRemovedTitle");
   ringEl.classList.remove("quiet");
   ringEl.classList.add("open");
@@ -154,11 +181,13 @@ function applyEntry(entry) {
     renderRemoved();
     return;
   }
+  blocked = true;
   if (entry.lockUntil) {
     until = entry.lockUntil;
     added = entry.addedAt || added;
   }
   tick();
+  showTries();
 }
 
 // Prefer live data from storage over the (possibly stale) redirect URL params.
@@ -167,7 +196,8 @@ function loadLiveEntry() {
     tick();
     return;
   }
-  chrome.storage.local.get("blocklist", ({ blocklist }) => {
+  chrome.storage.local.get(["blocklist", ATTEMPTS], ({ blocklist, [ATTEMPTS]: attempts }) => {
+    triesRecord = (attempts && attempts[domain]) || null;
     const list = Array.isArray(blocklist) ? blocklist : [];
     applyEntry(list.find((e) => e.domain === domain));
   });
@@ -177,10 +207,35 @@ function loadLiveEntry() {
 // this tab stays open, pick that change up immediately.
 if (chrome && chrome.storage && chrome.storage.onChanged) {
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== "local" || !changes.blocklist) return;
-    const list = changes.blocklist.newValue || [];
-    applyEntry(list.find((e) => e.domain === domain));
+    if (area !== "local") return;
+    if (changes[ATTEMPTS]) {
+      const attempts = changes[ATTEMPTS].newValue || {};
+      triesRecord = attempts[domain] || null;
+      showTries();
+    }
+    if (changes.blocklist) {
+      const list = changes.blocklist.newValue || [];
+      applyEntry(list.find((e) => e.domain === domain));
+    }
+  });
+}
+
+// Ask the background to count this showing of the page. It's told how the
+// page was reached, so a reload or a step back isn't counted as a try. A
+// page Chrome loads ahead of time (prerendering) counts only once it's
+// actually shown.
+function reportAttempt() {
+  if (!hasDomain || !(chrome && chrome.runtime && chrome.runtime.sendMessage)) return;
+  const nav = performance.getEntriesByType("navigation")[0];
+  const navType = (nav && nav.type) || "navigate";
+  chrome.runtime.sendMessage({ type: "attempt", domain, navType }, () => {
+    void chrome.runtime.lastError; // nothing to show; the panel follows storage
   });
 }
 
 loadLiveEntry();
+if (document.prerendering) {
+  document.addEventListener("prerenderingchange", reportAttempt, { once: true });
+} else {
+  reportAttempt();
+}

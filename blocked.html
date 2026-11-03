@@ -93,6 +93,46 @@
   .undo-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   .undo-btn[hidden] { display: none; }
 
+  /* "Visits blocked": how often the site was tried, and once the block has
+     run a week, a bar per day. */
+  .tries {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px 14px;
+    margin-top: 10px;
+    text-align: left;
+  }
+  .tries[hidden] { display: none; }
+  .tries .status-label { margin-bottom: 6px; }
+  .tries-figures { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .tries-total { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .tries-sub { font-size: 12.5px; color: var(--muted); }
+  .tries-soon { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+  .tries-soon:empty { display: none; }
+
+  .chart { position: relative; margin-top: 12px; }
+  .chart[hidden] { display: none; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart .bar-mark { fill: var(--accent); pointer-events: none; }
+  .chart .slot { fill: transparent; cursor: default; }
+  .chart .slot:hover + .bar-mark, .chart .bar-mark.hot { fill: var(--link); }
+  .chart .base { stroke: rgba(255,255,255,0.18); stroke-width: 1; }
+  .chart .grid { stroke: rgba(255,255,255,0.07); stroke-width: 1; stroke-dasharray: 2 3; }
+  .chart .axis { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .chart-tip {
+    position: absolute; top: 0; transform: translate(-50%, calc(-100% - 6px));
+    z-index: 1;
+    padding: 4px 8px; border-radius: 7px; white-space: nowrap; pointer-events: none;
+    background: #262b37; border: 1px solid var(--border); color: var(--text);
+    font-size: 12px; font-variant-numeric: tabular-nums;
+  }
+  .chart-tip[hidden] { display: none; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
   .hint { margin-top: 16px; font-size: 12px; color: var(--muted); line-height: 1.5; }
   .hint:empty { display: none; }
 
@@ -131,6 +171,20 @@
       <span id="undoAsk" data-i18n="undoAsk">Wrong site?</span>
       <button class="undo-btn" id="undoBtn"></button>
     </div>
+
+    <section class="tries" id="tries" aria-labelledby="triesLabel" hidden>
+      <div class="status-label" id="triesLabel" data-i18n="blkTriesLabel">Visits blocked</div>
+      <div class="tries-figures">
+        <span class="tries-total" id="triesTotal">0</span>
+        <span class="tries-sub" id="triesSub"></span>
+      </div>
+      <p class="tries-soon" id="triesSoon"></p>
+      <div class="chart" id="chart" hidden>
+        <svg id="chartSvg" aria-hidden="true" focusable="false"></svg>
+        <div class="chart-tip" id="chartTip" hidden></div>
+        <table class="sr-only" id="chartTable"></table>
+      </div>
+    </section>
 
     <p class="hint" id="hint" data-i18n="blkHint">You can make the timer longer from the extension at any time. Removing the site becomes possible when the timer ends.</p>
     <a class="go" id="goLink" hidden></a>

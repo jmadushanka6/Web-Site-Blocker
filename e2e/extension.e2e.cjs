@@ -5,7 +5,7 @@
 //   npx playwright install chromium
 //   npm run test:e2e               # or: node e2e/extension.e2e.cjs [section...]
 //
-// Sections: popup, review, blocked, parsing, fallback, quickblock, offnotice,
+// Sections: popup, review, blocked, tries, parsing, fallback, quickblock, offnotice,
 // german (default: all of them). Set HEADED=1 to watch the browser. Takes about
 // three minutes, mostly waiting for real timers (the popup's 15-second
 // refresh, a lock expiring, the switched-off check's grace period).
@@ -395,6 +395,93 @@ async function blockedSection() {
   await context.close();
 }
 
+// "Visits blocked" on the blocked page: which showings count, the total and
+// today's count, and the daily chart once a block has run for a week.
+async function triesSection() {
+  console.log("\n== visits blocked");
+  const { context, sw, id, errors } = await launch(buildExtension());
+  const popup = await openPopup(context, id, errors);
+  const attempts = () => sw.evaluate(() => chrome.storage.local.get("attempts").then((r) => r.attempts || {}));
+
+  // The tab switching over as the block starts isn't a try.
+  const pre = await context.newPage();
+  await pre.goto("https://www.example.org/feed", { waitUntil: "commit" }).catch(() => {});
+  check("block example.org", (await addSite(popup, "example.org", DAY)) === "Blocked.");
+  await pre.waitForURL(/blocked\.html/, { timeout: 5000 }).catch(() => {});
+  await sleep(800);
+  const first = (await attempts())["example.org"];
+  check("counting starts with the block", !!first && typeof first.since === "number", JSON.stringify(first));
+  check("…and the tab moving to the blocked page isn't counted", first && first.total === 0, JSON.stringify(first));
+  check("panel shows 0 on the moved tab", await eventually(async () => (await pre.isVisible("#tries")) && (await pre.textContent("#triesTotal")) === "0"));
+
+  // Past the start of the block, opening the site counts.
+  await sw.evaluate(async () => {
+    const { blocklist } = await chrome.storage.local.get("blocklist");
+    blocklist[0].addedAt = blocklist[0].createdAt = Date.now() - 60 * 60 * 1000;
+    await chrome.storage.local.set({ blocklist });
+  });
+  const page = await context.newPage();
+  page.on("pageerror", (e) => errors.push("blocked: " + e.message));
+  await page.goto("https://example.org/").catch(() => {});
+  check("a visit counts", await eventually(async () => (await page.textContent("#triesTotal")) === "1"));
+  const sub = (await page.textContent("#triesSub")).trim();
+  check("…today and since when", /^1 today · counting since \D+.*\d$/.test(sub), sub);
+  check("the other open blocked tab follows along", await eventually(async () => (await pre.textContent("#triesTotal")) === "1"));
+  check("no chart before a week", !(await page.isVisible("#chart")));
+  const soon = (await page.textContent("#triesSoon")).trim();
+  check("…but it says when the chart starts", /^A chart of each day appears from \D+.*\d\.$/.test(soon), soon);
+
+  await page.reload();
+  await sleep(800);
+  check("a reload isn't counted", (await attempts())["example.org"].total === 1);
+  await page.goto("https://m.example.org/x").catch(() => {});
+  check("a subdomain visit counts for the site", await eventually(async () => (await page.textContent("#triesTotal")) === "2"));
+  await page.goBack().catch(() => {});
+  await sleep(800);
+  check("going back isn't counted", (await attempts())["example.org"].total === 2);
+
+  // Ten days of history: the chart shows a bar for each day.
+  await sw.evaluate(async () => {
+    const day = (n) => {
+      const d = new Date();
+      d.setDate(d.getDate() - n);
+      const p = (x) => String(x).padStart(2, "0");
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    };
+    const since = new Date(); since.setDate(since.getDate() - 10);
+    await chrome.storage.local.set({
+      attempts: { "example.org": { since: since.getTime(), total: 14, days: { [day(10)]: 3, [day(6)]: 6, [day(2)]: 1, [day(0)]: 4 } } },
+    });
+  });
+  check("chart shows after a week", await eventually(() => page.isVisible("#chart")));
+  check("…with a column per day", (await page.locator("#chartSvg .slot").count()) === 11);
+  check("…and the busiest day's count on its top line", (await page.textContent("#chartSvg text")) === "6");
+  check("…and the chart's note gone", (await page.textContent("#triesSoon")) === "");
+  check("total and today follow storage", (await page.textContent("#triesTotal")) === "14" && (await page.textContent("#triesSub")).startsWith("4 today"));
+  await page.hover("#chartSvg .slot >> nth=4");
+  const tip = (await page.textContent("#chartTip")).trim();
+  check("hovering a day shows its count", (await page.isVisible("#chartTip")) && /: 6$/.test(tip), tip);
+  check("screen-reader table has every day", (await page.locator("#chartTable tr").count()) === 11);
+  if (process.env.SHOTS) await page.screenshot({ path: path.join(process.env.SHOTS, "tries-chart.png") });
+
+  // Removing the site deletes its counts and hides the panel.
+  await sw.evaluate(async () => {
+    const { blocklist } = await chrome.storage.local.get("blocklist");
+    blocklist[0].lockUntil = Date.now() - 1000;
+    await chrome.storage.local.set({ blocklist });
+  });
+  check("panel still shown once the timer ends", await eventually(async () => (await page.textContent("#title")) === "Timer's up — still blocked") && (await page.isVisible("#tries")));
+  await popup.reload();
+  await popup.waitForSelector("li.item .btn-remove");
+  await popup.click("li.item .btn-remove");
+  await page.waitForFunction(() => document.querySelector("#title").textContent === "No longer blocked");
+  check("panel hidden once removed", !(await page.isVisible("#tries")));
+  check("…and the counts deleted", await eventually(async () => !("example.org" in (await attempts()))));
+
+  check("no page errors", errors.length === 0, errors.join(" | "));
+  await context.close();
+}
+
 async function parsingSection() {
   console.log("\n== domain input");
   const { context, sw, id, errors } = await launch(buildExtension());
@@ -631,6 +718,7 @@ async function offNoticeSection() {
     if (want("popup")) await popupSection();
     if (want("review")) await reviewSection();
     if (want("blocked")) await blockedSection();
+    if (want("tries")) await triesSection();
     if (want("parsing")) await parsingSection();
     if (want("fallback")) await fallbackSection();
     if (want("quickblock")) await quickBlockSection();

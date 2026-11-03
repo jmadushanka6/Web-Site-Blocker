@@ -18,6 +18,7 @@ import {
   blockTab,
   quickBlockTab,
   undoBlock,
+  recordAttempt,
   refreshBadge,
   dismissOffNotice,
 } from "./siteActions.js";
@@ -28,6 +29,7 @@ import { markSessionStart, checkIn, noteAlive, HEARTBEAT_ALARM, HEARTBEAT_MINUTE
 const handlers = {
   add: (msg) => addSite(msg.value, msg.durationMs),
   undo: (msg) => undoBlock(msg.domain),
+  attempt: (msg) => recordAttempt(msg.domain, msg.navType),
   remove: (msg) => removeSite(msg.domain),
   extend: (msg) => extendSite(msg.domain, msg.durationMs),
   relock: (msg) => relockSite(msg.domain, msg.durationMs),

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Locked Site Blocker was removed</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="../assets/icon32.png" sizes="32x32">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <!--
+    Opened by the browser after an uninstall (chrome.runtime.setUninstallURL,
+    planned for 1.6.0). Optional query parameters, both set by the extension:
+      lang=de        show German (otherwise the browser's language decides)
+      store=edge     link "Reinstall" to Edge Add-ons instead of the Chrome Web Store
+    The page carries no identifiers, and nothing is sent until FORM_ENDPOINT
+    below is set to a form service named in the privacy policy.
+  -->
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../"><img src="../assets/icon128.png" alt="" width="28" height="28">Locked Site Blocker</a>
+    </div>
+  </header>
+
+  <main id="main" class="prose">
+    <div class="wrap narrow survey" id="survey">
+      <div data-lang="en">
+        <h1>Locked Site Blocker was removed</h1>
+        <p class="meta">Your block list was deleted with it.</p>
+      </div>
+      <div data-lang="de" hidden>
+        <h1>Locked Site Blocker wurde entfernt</h1>
+        <p class="meta">Deine Sperrliste wurde dabei gelöscht.</p>
+      </div>
+
+      <form id="why">
+        <fieldset>
+          <legend><span data-lang="en">What made you remove it?</span><span data-lang="de" hidden>Warum hast du sie entfernt?</span></legend>
+          <label class="choice"><input type="radio" name="reason" value="wrong-site"><span data-lang="en">I blocked the wrong site</span><span data-lang="de" hidden>Ich habe die falsche Website gesperrt</span></label>
+          <label class="choice"><input type="radio" name="reason" value="too-strict"><span data-lang="en">It was too strict</span><span data-lang="de" hidden>Sie war mir zu streng</span></label>
+          <label class="choice"><input type="radio" name="reason" value="too-easy"><span data-lang="en">It was too easy to get around</span><span data-lang="de" hidden>Sie war zu leicht zu umgehen</span></label>
+          <label class="choice"><input type="radio" name="reason" value="broken"><span data-lang="en">Something didn't work</span><span data-lang="de" hidden>Etwas hat nicht funktioniert</span></label>
+          <label class="choice"><input type="radio" name="reason" value="other"><span data-lang="en">Something else</span><span data-lang="de" hidden>Etwas anderes</span></label>
+        </fieldset>
+        <div class="buttons">
+          <button class="button primary" type="submit"><span data-lang="en">Send</span><span data-lang="de" hidden>Senden</span></button>
+        </div>
+        <p class="small"><span data-lang="en">Sent without your name, email or block list.</span><span data-lang="de" hidden>Ohne Namen, E-Mail-Adresse oder Sperrliste.</span></p>
+      </form>
+
+      <div class="thanks" role="status">
+        <h2><span data-lang="en">Thank you</span><span data-lang="de" hidden>Danke</span></h2>
+        <p><span data-lang="en">That helps make it better for the next person.</span><span data-lang="de" hidden>Das hilft, sie für die Nächsten besser zu machen.</span></p>
+      </div>
+
+      <h2><span data-lang="en">Changed your mind?</span><span data-lang="de" hidden>Doch noch einmal?</span></h2>
+      <p><span data-lang="en">Reinstalling takes a few seconds. You'll start with an empty list.</span><span data-lang="de" hidden>Neu installieren dauert ein paar Sekunden. Du startest mit einer leeren Liste.</span></p>
+      <div class="buttons">
+        <a class="button" id="reinstall" href="https://github.com/jmadushanka6/Web-Site-Blocker#install"><span data-lang="en">Reinstall</span><span data-lang="de" hidden>Neu installieren</span></a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© 2026 Locked Site Blocker</span>
+      <nav aria-label="Footer">
+        <a href="../" data-lang="en">Home</a><a href="../de/" data-lang="de" hidden>Startseite</a>
+        <a href="../privacy/" data-lang="en">Privacy</a><a href="../de/datenschutz/" data-lang="de" hidden>Datenschutz</a>
+        <a href="../impressum/"><span data-lang="en">Legal notice</span><span data-lang="de" hidden>Impressum</span></a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    // TODO before 1.6.0: set to the form service's endpoint, and name that
+    // service in the privacy policy. Until then answers stay on this page.
+    const FORM_ENDPOINT = "";
+    // TODO after publishing: the store listing URLs.
+    const STORE_URLS = {
+      chrome: "https://github.com/jmadushanka6/Web-Site-Blocker#install",
+      edge: "https://github.com/jmadushanka6/Web-Site-Blocker#install",
+    };
+
+    const params = new URLSearchParams(location.search);
+    const lang = params.get("lang") || (navigator.language || "en").slice(0, 2);
+    if (lang === "de") {
+      document.documentElement.lang = "de";
+      document.title = "Locked Site Blocker wurde entfernt";
+      for (const el of document.querySelectorAll("[data-lang]")) {
+        el.hidden = el.dataset.lang !== "de";
+      }
+    }
+
+    const store = params.get("store") === "edge" ? "edge" : "chrome";
+    document.getElementById("reinstall").href = STORE_URLS[store];
+
+    const survey = document.getElementById("survey");
+    document.getElementById("why").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const choice = new FormData(event.target).get("reason");
+      if (!choice) return;
+      if (FORM_ENDPOINT) {
+        try {
+          // Only the chosen reason and the store; nothing that identifies anyone.
+          await fetch(FORM_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason: choice, store, lang }),
+          });
+        } catch (_) {
+          // Thank people either way; a lost answer isn't worth an error.
+        }
+      }
+      survey.classList.add("sent");
+    });
+  </script>
+</body>
+</html>

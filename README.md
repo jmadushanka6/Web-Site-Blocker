@@ -78,6 +78,25 @@ Your list lives in local extension storage — nothing leaves your machine. See 
 - Chrome gives an extension no event for being switched off or on, so the notice is worked out instead: Chrome wipes the extension's session storage whenever it's switched off, updated or the browser restarts. A browser restart and an update each announce themselves (`runtime.onStartup` / `runtime.onInstalled`), so a wiped session that neither of them explains means the extension was switched off and back on. A once-a-minute heartbeat (an alarm), and anything you do with the extension, records when it was last running, which gives the "off from about…" time. If it's switched off a while after you last used it, that time can be up to about a minute early.
 - The code is split by responsibility: `lockModel.js` (pure lock rules, including the 30-second undo), `review.js` (which new blocks get a review), `i18n.js` (text in the user's language), `support.js` (when to ask for a rating), `storage.js` (persistence), `rules.js` (enforcement), `tabs.js` (applying new blocks to open tabs, finding the current tab), `contextMenu.js` (the right-click menu), `offTracker.js` (noticing the extension was switched off), `attempts.js` (counting tries on blocked sites), `triesView.js` (the blocked page's counts and chart), `badge.js` (the toolbar badge), `siteActions.js` (the actual add/remove/extend/relock/block-this-tab operations), and `background.js` (thin event wiring). The popup follows the same split (`popupApi.js` / `popupRender.js` / `popupReview.js` / `popupAsk.js` / `popup.js`).
 
+## Website
+
+`docs/` is the project website, a static site for GitHub Pages (Settings → Pages → Deploy from a branch → `main`, folder `/docs`). It has no build step and loads nothing from third parties.
+
+| Page | Path |
+| --- | --- |
+| Homepage, English / German | `docs/index.html`, `docs/de/index.html` |
+| Privacy policy, English / German | `docs/privacy/`, `docs/de/datenschutz/` (keep in step with `PRIVACY.md`) |
+| Goodbye page, opened after an uninstall | `docs/goodbye/` (`?lang=de`, `?store=edge`) |
+| Impressum | `docs/impressum/` |
+
+Before it goes live:
+
+- Buy the domain, add it under Settings → Pages (this creates `docs/CNAME`) and turn on Enforce HTTPS. The pages assume `lockedsiteblocker.com`; search `docs/` for it if the domain differs.
+- Set up `support@` forwarding for the address the pages use.
+- Fill in the Impressum placeholders.
+- After publishing, replace the store links (marked `TODO` in the homepages and the goodbye page).
+- Before turning on the goodbye survey, set `FORM_ENDPOINT` in `docs/goodbye/index.html` and name the form service in both privacy pages.
+
 ## Development
 
 - **Unit tests:** `npm test` (Node 18 or later, no dependencies to install).

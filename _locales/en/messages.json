@@ -689,21 +689,30 @@
     "message": "Visits blocked",
     "description": "Heading over how many times the blocked site was tried."
   },
-  "blkTriesSub": {
-    "message": "$P1$ today · counting since $P2$",
-    "description": "$1 is today's count, $2 the day counting started, e.g. Tue 27 Oct.",
+  "blkTriesNone": {
+    "message": "Not one try yet — keep it that way.",
+    "description": "Beside a total of 0 visits blocked."
+  },
+  "blkTriesNoneToday": {
+    "message": "None today — keep it that way.",
+    "description": "Beside the total when the site hasn't been tried today."
+  },
+  "blkTriesOne": {
+    "message": "1 today — and it held firm.",
+    "description": "Beside the total when the site was tried once today. Echoes the store line \"Holds firm when you don't.\""
+  },
+  "blkTriesMany": {
+    "message": "$P1$ today — it held firm every time.",
+    "description": "Beside the total. $1 is today's count (2 or more). Echoes the store line \"Holds firm when you don't.\"",
     "placeholders": {
       "p1": {
         "content": "$1"
-      },
-      "p2": {
-        "content": "$2"
       }
     }
   },
   "blkTriesSoon": {
-    "message": "A chart of each day appears from $P1$.",
-    "description": "$1 is the day the daily chart starts showing, e.g. Tue 10 Nov.",
+    "message": "Hold out until $P1$ — then you'll see your week here, day by day.",
+    "description": "Shown until the daily chart appears. $1 is the day it starts showing, e.g. Thu 12 Nov.",
     "placeholders": {
       "p1": {
         "content": "$1"

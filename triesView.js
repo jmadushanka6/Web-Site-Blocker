@@ -44,6 +44,17 @@ function barPath(x, w, h, base) {
   );
 }
 
+// The line beside the total. It speaks to the person who just got stopped,
+// in the voice of the store listing ("Holds firm when you don't."), rather
+// than reading out bookkeeping.
+export function triesLine(record, now = Date.now()) {
+  if (!(record && record.total)) return t("blkTriesNone");
+  const today = todayCount(record, now);
+  if (today === 0) return t("blkTriesNoneToday");
+  if (today === 1) return t("blkTriesOne");
+  return t("blkTriesMany", today);
+}
+
 // els: { panel, total, sub, soon, chart, svg, tip, table }
 export function renderTries(els, record, now = Date.now()) {
   if (!record) {
@@ -52,7 +63,7 @@ export function renderTries(els, record, now = Date.now()) {
   }
   els.panel.hidden = false;
   els.total.textContent = String(record.total || 0);
-  els.sub.textContent = t("blkTriesSub", todayCount(record, now), fmtDay(record.since));
+  els.sub.textContent = triesLine(record, now);
 
   if (!showsChart(record, now)) {
     els.chart.hidden = true;

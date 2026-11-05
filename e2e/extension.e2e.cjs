@@ -415,6 +415,7 @@ async function triesSection() {
   check("counting starts with the block", !!first && typeof first.since === "number", JSON.stringify(first));
   check("…and the tab moving to the blocked page isn't counted", first && first.total === 0, JSON.stringify(first));
   check("panel shows 0 on the moved tab", await eventually(async () => (await pre.isVisible("#tries")) && (await pre.textContent("#triesTotal")) === "0"));
+  check("…with a nudge to keep it at 0", (await pre.textContent("#triesSub")) === "Not one try yet — keep it that way.");
 
   // Past the start of the block, opening the site counts.
   await sw.evaluate(async () => {
@@ -427,11 +428,11 @@ async function triesSection() {
   await page.goto("https://example.org/").catch(() => {});
   check("a visit counts", await eventually(async () => (await page.textContent("#triesTotal")) === "1"));
   const sub = (await page.textContent("#triesSub")).trim();
-  check("…today and since when", /^1 today · counting since \D+.*\d$/.test(sub), sub);
+  check("…and says it held firm today", sub === "1 today — and it held firm.", sub);
   check("the other open blocked tab follows along", await eventually(async () => (await pre.textContent("#triesTotal")) === "1"));
   check("no chart before a week", !(await page.isVisible("#chart")));
   const soon = (await page.textContent("#triesSoon")).trim();
-  check("…but it says when the chart starts", /^A chart of each day appears from \D+.*\d\.$/.test(soon), soon);
+  check("…but it says when the week view arrives", /^Hold out until \D+.*\d — then you'll see your week here, day by day\.$/.test(soon), soon);
 
   await page.reload();
   await sleep(800);
@@ -459,7 +460,7 @@ async function triesSection() {
   check("…with a column per day", (await page.locator("#chartSvg .slot").count()) === 11);
   check("…and the busiest day's count on its top line", (await page.textContent("#chartSvg text")) === "6");
   check("…and the chart's note gone", (await page.textContent("#triesSoon")) === "");
-  check("total and today follow storage", (await page.textContent("#triesTotal")) === "14" && (await page.textContent("#triesSub")).startsWith("4 today"));
+  check("total and today follow storage", (await page.textContent("#triesTotal")) === "14" && (await page.textContent("#triesSub")) === "4 today — it held firm every time.");
   await page.hover("#chartSvg .slot >> nth=4");
   const tip = (await page.textContent("#chartTip")).trim();
   check("hovering a day shows its count", (await page.isVisible("#chartTip")) && /: 6$/.test(tip), tip);

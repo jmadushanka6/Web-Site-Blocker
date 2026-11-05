@@ -662,21 +662,30 @@
     "message": "Gesperrte Aufrufe",
     "description": "Heading over how many times the blocked site was tried."
   },
-  "blkTriesSub": {
-    "message": "heute $P1$ · gezählt seit $P2$",
-    "description": "$1 is today's count, $2 the day counting started, e.g. Tue 27 Oct.",
+  "blkTriesNone": {
+    "message": "Noch kein einziger Versuch – weiter so.",
+    "description": "Beside a total of 0 visits blocked."
+  },
+  "blkTriesNoneToday": {
+    "message": "Heute noch keiner – weiter so.",
+    "description": "Beside the total when the site hasn't been tried today."
+  },
+  "blkTriesOne": {
+    "message": "Heute 1 – die Sperre hat standgehalten.",
+    "description": "Beside the total when the site was tried once today. Echoes the store line \"Hält stand, wenn du schwach wirst.\""
+  },
+  "blkTriesMany": {
+    "message": "Heute $P1$ – die Sperre hat jedes Mal standgehalten.",
+    "description": "Beside the total. $1 is today's count (2 or more). Echoes the store line \"Hält stand, wenn du schwach wirst.\"",
     "placeholders": {
       "p1": {
         "content": "$1"
-      },
-      "p2": {
-        "content": "$2"
       }
     }
   },
   "blkTriesSoon": {
-    "message": "Ab $P1$ erscheint hier ein Diagramm pro Tag.",
-    "description": "$1 is the day the daily chart starts showing, e.g. Tue 10 Nov.",
+    "message": "Halte durch bis $P1$ – dann siehst du hier deine Woche, Tag für Tag.",
+    "description": "Shown until the daily chart appears. $1 is the day it starts showing, e.g. Do., 12. Nov.",
     "placeholders": {
       "p1": {
         "content": "$1"

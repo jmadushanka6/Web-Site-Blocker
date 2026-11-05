@@ -1,8 +1,8 @@
 // siteActions.js
 // The service layer: each export is one user-facing action, composing
 // lockModel (rules) + storage (persistence) + rules.js (enforcement) +
-// tabs.js, offTracker.js and badge.js without any of those modules needing
-// to know about each other.
+// siteWorkers.js, tabs.js, offTracker.js and badge.js without any of those
+// modules needing to know about each other.
 // Dependency Inversion: this is the only file that wires the pieces
 // together, so each piece can change independently (swap storage,
 // change enforcement, tweak lock rules) without touching the others.
@@ -26,7 +26,8 @@ import {
 import { getBlocklist, setBlocklist } from "./storage.js";
 import { t, remainingText } from "./i18n.js";
 import { syncRules, hasSiteAccess } from "./rules.js";
-import { reloadTabsOn, getTab, getActiveTab, reloadTab } from "./tabs.js";
+import { reloadTabsOn, tabUrlsOn, getTab, getActiveTab, reloadTab } from "./tabs.js";
+import { clearSiteWorkers } from "./siteWorkers.js";
 import { getUnseenOffPeriods, acknowledgeOffPeriods } from "./offTracker.js";
 import { showAttention, flashBadge } from "./badge.js";
 import { shouldCount, logAttempt, startCounting, forgetAttempts } from "./attempts.js";
@@ -68,6 +69,9 @@ export async function addSite(rawInput, durationMs) {
   }
   await setBlocklist(list);
   await syncRules();
+  // Before any tab reloads: a worker the site installed earlier would
+  // otherwise answer the reload itself and keep showing the site.
+  await removeSiteWorkers([domain]);
   if (!existing) await startCounting(domain);
   // A site that's new to the list may be open in tabs right now; reload
   // them so the block shows immediately. (A re-locked site was never
@@ -156,6 +160,32 @@ export async function relockSite(domain, durationMs) {
   return { ok: true };
 }
 
+// Takes away the service workers of `domains`, so the sites can't answer
+// visits to themselves past the block (see siteWorkers.js). `extraUrls` are
+// addresses on those sites to clear as well, beyond their open tabs. Never
+// throws: if it fails, blocking still works for every site without a worker.
+async function removeSiteWorkers(domains, extraUrls = []) {
+  try {
+    const tabUrls = (await Promise.all(domains.map(tabUrlsOn))).flat();
+    await clearSiteWorkers(domains, [...tabUrls, ...extraUrls.filter(Boolean)]);
+  } catch (e) {
+    console.warn("Couldn't remove the service workers of " + domains.join(", "), e);
+  }
+}
+
+// Removes the service workers of every site on the list. Run whenever the
+// extension sets itself up (install, update, browser start-up, coming back
+// on): it catches workers on sites blocked before this existed, and any a
+// site installed while the extension was switched off. Tabs still showing
+// one of those sites got past the block through such a worker, and could
+// install it again, so they're reloaded straight away, onto the block.
+export async function clearBlockedSiteWorkers() {
+  const domains = (await getBlocklist()).map((e) => e.domain);
+  if (domains.length === 0) return;
+  await removeSiteWorkers(domains);
+  await Promise.all(domains.map(reloadTabsOn));
+}
+
 // Which site a tab is showing, and whether a lock already covers it — what
 // the popup needs to decide whether to offer its one-click "Block" button.
 export async function tabSiteStatus(tabId) {
@@ -178,7 +208,9 @@ export async function blockTab(tabId, durationMs, pageUrl) {
   const cover = findLockedCover(list, domain);
   if (cover) {
     // Already blocked: the tab was opened before the block existed (or while
-    // the extension couldn't act on it), so a reload brings up the block.
+    // the extension couldn't act on it), so a reload brings up the block —
+    // once any worker of the site's that would answer the reload is gone.
+    await removeSiteWorkers([cover.domain], [tab.url || pageUrl]);
     await reloadTab(tabId);
     return { ok: true, domain: cover.domain, alreadyBlocked: true };
   }

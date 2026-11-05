@@ -19,6 +19,17 @@ export async function reloadTabsOn(domain) {
   }
 }
 
+// The addresses of the tabs open on `domain` or its subdomains (empty if
+// the user has restricted the extension's site access, as above).
+export async function tabUrlsOn(domain) {
+  try {
+    const tabs = await chrome.tabs.query({ url: originPatternFor(domain) });
+    return tabs.map((tab) => tab.url).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 // A tab by id, or null if it's closed (or never existed).
 export async function getTab(tabId) {
   try {

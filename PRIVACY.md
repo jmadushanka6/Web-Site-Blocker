@@ -1,6 +1,6 @@
 # Privacy policy — Locked Site Blocker
 
-_Last updated: 3 November 2026_ · [Deutsche Fassung unten](#datenschutzerklärung-deutsch)
+_Last updated: 5 November 2026_ · [Deutsche Fassung unten](#datenschutzerklärung-deutsch)
 
 Locked Site Blocker is a Chrome extension that blocks websites you choose. In
 short: everything it knows stays in your browser, and nothing is collected or
@@ -51,6 +51,12 @@ synced to your Google account or to other devices.
 - **Alarms** (`alarms`): wakes the extension about once a minute to note that
   it's running, so it can tell you later if it was switched off, and for how
   long.
+- **Removing blocked sites' service workers** (`browsingData`): when you block
+  a site, removes that site's service worker, a background script some sites
+  install for push alerts or offline reading. Without this, such a site could
+  keep opening from its own cache despite the block. Nothing else is removed:
+  not your history, cookies, sign-ins or the site's other data. That site's
+  push alerts stop until you remove the block and visit it again.
 - **Access to all websites** (`<all_urls>`): lets Chrome show the extension's
   countdown page in place of a site on your list, reload tabs already open on a
   site when you block it, and see which site the current tab is on when you ask
@@ -74,7 +80,7 @@ Questions about this policy: [your support email]
 
 ## Datenschutzerklärung (Deutsch)
 
-_Stand: 3. November 2026_
+_Stand: 5. November 2026_
 
 Locked Site Blocker ist eine Chrome-Erweiterung, die Websites sperrt, die du
 auswählst. Kurz gesagt: Alles, was sie weiß, bleibt in deinem Browser. Es
@@ -126,6 +132,14 @@ werden weder mit deinem Google-Konto noch mit anderen Geräten synchronisiert.
   hinzu.
 - **Alarme** (`alarms`): weckt die Erweiterung etwa einmal pro Minute, damit
   sie dir später sagen kann, ob und wie lange sie ausgeschaltet war.
+- **Service Worker gesperrter Websites entfernen** (`browsingData`): Wenn du
+  eine Website sperrst, entfernt die Erweiterung ihren Service Worker – ein
+  Hintergrundskript, das manche Websites für Push-Benachrichtigungen oder zum
+  Offline-Lesen installieren. Ohne das könnte sich eine solche Website trotz
+  Sperre aus ihrem eigenen Zwischenspeicher weiter öffnen. Sonst wird nichts
+  gelöscht: weder Verlauf noch Cookies, Anmeldungen oder andere Daten der
+  Website. Ihre Push-Benachrichtigungen enden, bis du die Sperre entfernst und
+  die Website wieder besuchst.
 - **Zugriff auf alle Websites** (`<all_urls>`): damit Chrome die
   Countdown-Seite statt einer gesperrten Website zeigen, bereits offene Tabs
   neu laden und erkennen kann, auf welcher Website der aktuelle Tab ist, wenn

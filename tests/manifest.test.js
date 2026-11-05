@@ -43,6 +43,15 @@ test("every requested API permission is actually used", () => {
   }
 });
 
+test("browsingData is only ever used to remove service workers", () => {
+  // The privacy policies and the store's permission justification promise
+  // this, so nothing else may creep in.
+  const uses = readdirSync(root)
+    .filter((f) => f.endsWith(".js"))
+    .flatMap((f) => read(f).match(/chrome\.browsingData\.[^\n]*/g) || []);
+  assert.deepEqual(uses, ["chrome.browsingData.remove({ origins }, { serviceWorkers: true });"]);
+});
+
 test("the store icon is a 128x128 PNG", () => {
   const png = readFileSync(new URL(manifest.icons["128"], root));
   assert.equal(png.toString("ascii", 1, 4), "PNG");

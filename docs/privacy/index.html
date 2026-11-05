@@ -29,7 +29,7 @@
   <main id="main" class="prose">
     <div class="wrap narrow">
       <h1>Privacy policy</h1>
-      <p class="meta">Last updated: 4 November 2026</p>
+      <p class="meta">Last updated: 5 November 2026</p>
       <p>Locked Site Blocker is a browser extension that blocks websites you choose. In short: everything it knows stays in your browser, and nothing is collected or shared. This page covers the extension and this website.</p>
 
       <h2>What the extension stores</h2>
@@ -55,6 +55,7 @@
         <li><strong>Storage</strong> (<code>storage</code>): keeps your block list on your device.</li>
         <li><strong>Right-click menu</strong> (<code>contextMenus</code>): adds "Block this site" to the menu you get when you right-click a page or the extension's icon.</li>
         <li><strong>Alarms</strong> (<code>alarms</code>): wakes the extension about once a minute to note that it's running, so it can tell you later if it was switched off, and for how long.</li>
+        <li><strong>Removing blocked sites' service workers</strong> (<code>browsingData</code>): when you block a site, removes that site's service worker, a background script some sites install for push alerts or offline reading. Without this, such a site could keep opening from its own cache despite the block. Nothing else is removed: not your history, cookies, sign-ins or the site's other data. That site's push alerts stop until you remove the block and visit it again.</li>
         <li><strong>Access to all websites</strong> (<code>&lt;all_urls&gt;</code>): lets the browser show the extension's countdown page in place of a site on your list, reload tabs already open on a site when you block it, and see which site the current tab is on when you ask to block it. It covers every site because you decide which sites to block.</li>
       </ul>
 

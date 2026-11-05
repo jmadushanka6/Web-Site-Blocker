@@ -29,7 +29,7 @@
   <main id="main" class="prose">
     <div class="wrap narrow">
       <h1>Datenschutzerklärung</h1>
-      <p class="meta">Stand: 4. November 2026</p>
+      <p class="meta">Stand: 5. November 2026</p>
       <p>Locked Site Blocker ist eine Browser-Erweiterung, die Websites sperrt, die du auswählst. Kurz gesagt: Alles, was sie weiß, bleibt in deinem Browser. Es werden keine Daten erhoben oder weitergegeben. Diese Seite gilt für die Erweiterung und für diese Website.</p>
 
       <h2>Was die Erweiterung speichert</h2>
@@ -55,6 +55,7 @@
         <li><strong>Speicher</strong> (<code>storage</code>): speichert deine Sperrliste auf deinem Gerät.</li>
         <li><strong>Rechtsklick-Menü</strong> (<code>contextMenus</code>): fügt „Diese Website sperren“ zum Menü hinzu.</li>
         <li><strong>Alarme</strong> (<code>alarms</code>): weckt die Erweiterung etwa einmal pro Minute, damit sie dir später sagen kann, ob und wie lange sie ausgeschaltet war.</li>
+        <li><strong>Service Worker gesperrter Websites entfernen</strong> (<code>browsingData</code>): Wenn du eine Website sperrst, entfernt die Erweiterung ihren Service Worker – ein Hintergrundskript, das manche Websites für Push-Benachrichtigungen oder zum Offline-Lesen installieren. Ohne das könnte sich eine solche Website trotz Sperre aus ihrem eigenen Zwischenspeicher weiter öffnen. Sonst wird nichts gelöscht: weder Verlauf noch Cookies, Anmeldungen oder andere Daten der Website. Ihre Push-Benachrichtigungen enden, bis du die Sperre entfernst und die Website wieder besuchst.</li>
         <li><strong>Zugriff auf alle Websites</strong> (<code>&lt;all_urls&gt;</code>): damit der Browser die Countdown-Seite statt einer gesperrten Website zeigen, bereits offene Tabs neu laden und erkennen kann, auf welcher Website der aktuelle Tab ist, wenn du sie sperren willst. Er gilt für alle Websites, weil du entscheidest, welche gesperrt werden.</li>
       </ul>
 

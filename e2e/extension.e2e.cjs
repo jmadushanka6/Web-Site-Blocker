@@ -5,13 +5,15 @@
 //   npx playwright install chromium
 //   npm run test:e2e               # or: node e2e/extension.e2e.cjs [section...]
 //
-// Sections: popup, review, blocked, tries, parsing, fallback, quickblock, offnotice,
-// german (default: all of them). Set HEADED=1 to watch the browser. Takes about
+// Sections: popup, review, blocked, tries, parsing, fallback, quickblock, workers,
+// offnotice, german (default: all of them). Set HEADED=1 to watch the browser, or
+// CHROME_PATH to use another Chromium-based browser (one that still accepts
+// --load-extension, such as Chrome for Testing). Takes about
 // three minutes, mostly waiting for real timers (the popup's 15-second
 // refresh, a lock expiring, the switched-off check's grace period).
 // No network access is needed: blocked sites are redirected before any
-// request leaves the browser, and the one site that has to load first
-// (in "quickblock") is served by this script on 127.0.0.1.
+// request leaves the browser, and the sites that have to load first (in
+// "quickblock" and "workers") are served by this script on 127.0.0.1.
 const { chromium } = require("playwright");
 const fs = require("fs");
 const http = require("http");
@@ -73,7 +75,7 @@ function buildExtension({ restricted = false } = {}) {
 // extra command-line switches.
 async function launch(extDir, { profile = tempDir("lsb-profile-"), args = [], lang = null } = {}) {
   const context = await chromium.launchPersistentContext(profile, {
-    channel: "chromium",
+    ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : { channel: "chromium" }),
     headless: !process.env.HEADED,
     args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`, ...args, ...(lang ? [`--lang=${lang}`] : [])],
     // Chromium on Linux takes its UI language (the one extensions get their
@@ -609,6 +611,132 @@ async function quickBlockSection() {
   }
 }
 
+// A site that installed its own service worker before it was blocked. The
+// worker can answer visits to the site by itself, so they never reach the
+// blocking rules; the extension has to remove it (siteWorkers.js).
+const WORKER_PAGE = `<!doctype html><title>Worker site</title><h1>Worker site</h1>
+<script>navigator.serviceWorker && navigator.serviceWorker.register("/sw.js");</script>`;
+// Offline-first, like many news-site plugins: it answers every page load
+// from its cache.
+const WORKER_SCRIPT = `
+self.addEventListener("install", (e) => { self.skipWaiting(); e.waitUntil(caches.open("v1").then((c) => c.add("/"))); });
+self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener("fetch", (e) => {
+  if (e.request.mode === "navigate") e.respondWith(caches.match("/").then((r) => r || fetch(e.request)));
+});`;
+
+function startWorkerSiteServer() {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      const isScript = req.url.startsWith("/sw.js");
+      res.writeHead(200, { "Content-Type": isScript ? "text/javascript" : "text/html; charset=utf-8" });
+      res.end(isScript ? WORKER_SCRIPT : WORKER_PAGE);
+    });
+    server.listen(0, "127.0.0.1", () => resolve(server));
+  });
+}
+
+async function workersSection() {
+  console.log("\n== sites with their own service worker");
+  const server = await startWorkerSiteServer();
+  const hosts = ["new.test", "covered.test", "old.test"];
+  // Served on the usual port 80 (service workers are tied to an exact
+  // address, and the extension clears a site's usual addresses), and
+  // treated as secure, since service workers only run on secure pages.
+  const port = server.address().port;
+  const args = [
+    `--host-resolver-rules=${hosts.map((h) => `MAP ${h} 127.0.0.1:${port}`).join(",")}`,
+    "--no-proxy-server",
+    "--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable",
+    `--unsafely-treat-insecure-origin-as-secure=${hosts.map((h) => "http://" + h).join(",")}`,
+  ];
+  const BLOCKED = /blocked\.html\?d=/;
+  try {
+    const extDir = buildExtension();
+    const profile = tempDir("lsb-profile-");
+    let { context, sw, id, errors } = await launch(extDir, { profile, args });
+
+    // Opens the site and waits until its worker is answering page loads.
+    async function installWorker(host) {
+      const page = await context.newPage();
+      await page.goto(`http://${host}/`);
+      await page.evaluate(() => navigator.serviceWorker.ready);
+      await page.reload();
+      const controlled = await page.evaluate(() => !!navigator.serviceWorker.controller);
+      check(`${host} installs its service worker`, controlled);
+      return page;
+    }
+    async function opensTo(host) {
+      const page = await context.newPage();
+      await page.goto(`http://${host}/`).catch(() => {});
+      await sleep(300);
+      const url = page.url();
+      await page.close();
+      return url;
+    }
+    // Blocks `host` the way the extension did before it removed workers:
+    // the rule is in place, the site's worker is left alone.
+    async function blockLeavingWorker(page, host) {
+      await page.evaluate(async (domain) => {
+        const { blocklist = [] } = await chrome.storage.local.get("blocklist");
+        const now = Date.now();
+        blocklist.push({ domain, addedAt: now, lockUntil: now + 86400000 });
+        await chrome.storage.local.set({ blocklist });
+        const { syncRules } = await import(chrome.runtime.getURL("rules.js"));
+        await syncRules();
+      }, host);
+    }
+
+    // A new block takes the site's worker away before reloading its tabs.
+    const open = await installWorker("new.test");
+    const popup = await openPopup(context, id, errors);
+    const m = await addSite(popup, "new.test");
+    check("new.test blocked", m === "Blocked.", m);
+    const moved = await open.waitForURL(BLOCKED, { timeout: 5000 }).then(() => true, () => false);
+    check("its open tab switches to the blocked page", moved, open.url());
+    check("…and a new visit is blocked too", BLOCKED.test(await opensTo("new.test")));
+
+    // Without removing the worker, the block doesn't hold: this is the bug.
+    const coveredTab = await installWorker("covered.test");
+    await blockLeavingWorker(popup, "covered.test");
+    const ruleIn = (await rules(sw)).some((r) => r.condition.requestDomains[0] === "covered.test");
+    check("with only the rule in place…", ruleIn);
+    check("…the site's worker still opens it", (await opensTo("covered.test")) === "http://covered.test/");
+
+    // "Block this site" on such a tab: the site is already on the list, so
+    // only the worker has to go before the reload.
+    await coveredTab.reload();
+    const tabId = await sw.evaluate(async () => (await chrome.tabs.query({ url: "*://covered.test/*" }))[0].id);
+    const r = await popup.evaluate((t) => chrome.runtime.sendMessage({ type: "blockTab", tabId: t }), tabId);
+    check("Block this site recognises the existing block", r && r.ok && r.alreadyBlocked, JSON.stringify(r));
+    const coveredMoved = await coveredTab.waitForURL(BLOCKED, { timeout: 5000 }).then(() => true, () => false);
+    check("…and the tab switches to the blocked page", coveredMoved, coveredTab.url());
+    check("…and stays blocked on a new visit", BLOCKED.test(await opensTo("covered.test")));
+
+    // A site blocked before this update, with its worker still there: the
+    // extension's next set-up removes it.
+    const oldTab = await installWorker("old.test");
+    await oldTab.close();
+    await blockLeavingWorker(popup, "old.test");
+    check("with only the rule in place, old.test still opens", (await opensTo("old.test")) === "http://old.test/");
+    await popup.close();
+    // The next browser start-up runs the extension's set-up, as an install
+    // or update does. (Reloading the extension from here would unload it.)
+    await context.close();
+    ({ context, sw, id, errors } = await launch(extDir, { profile, args }));
+    // Wait for set-up rather than polling: a visit while the worker is still
+    // there would load the site, and its page could install the worker again.
+    await sleep(OFF_CHECK_GRACE + 2000);
+    const after = BLOCKED.test(await opensTo("old.test"));
+    check("after a restart, the worker is gone and old.test is blocked", after);
+
+    check("no page errors", errors.length === 0, errors.join(" | "));
+    await context.close();
+  } finally {
+    server.close();
+  }
+}
+
 async function germanSection() {
   console.log("\n== German");
   const { context, sw, id, errors } = await launch(buildExtension(), { lang: "de" });
@@ -722,6 +850,7 @@ async function offNoticeSection() {
     if (want("parsing")) await parsingSection();
     if (want("fallback")) await fallbackSection();
     if (want("quickblock")) await quickBlockSection();
+    if (want("workers")) await workersSection();
     if (want("offnotice")) await offNoticeSection();
     if (want("german")) await germanSection();
   } finally {

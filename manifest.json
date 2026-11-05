@@ -9,7 +9,8 @@
     "declarativeNetRequest",
     "storage",
     "contextMenus",
-    "alarms"
+    "alarms",
+    "browsingData"
   ],
   "host_permissions": [
     "<all_urls>"

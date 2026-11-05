@@ -163,6 +163,7 @@ add a keyword list; the store treats that as spam. The German text says
 | `storage` | Saves the user's block list (each site's domain, when it was added, when its timer started and when it ends) locally on the device, so blocks persist across browser restarts. It also keeps, on the device, the time the extension was last running and a short log of times it was switched off, so the popup can tell the user about them. |
 | `contextMenus` | Adds a "Block this site" item to the right-click menu on web pages and on the extension's toolbar icon, so the user can block the site they're on without typing its address. Choosing a timer from it blocks that site; the menu does nothing else. |
 | `alarms` | A once-a-minute heartbeat that records, on the device, that the extension is running. While the extension is switched off, none of the user's blocks apply; when it's switched back on, the last heartbeat tells the popup roughly when it went off, so it can show the user when and for how long their blocks weren't working. |
+| `browsingData` | Used only to remove the service workers of sites on the user's block list: `chrome.browsingData.remove` with `serviceWorkers` as the only data type, limited to those sites' origins. A site that installed a service worker before it was blocked can answer visits to itself from that worker, which never reach declarativeNetRequest, so the block wouldn't hold. Removing the worker sends the next visit through the network, where the block applies. This runs when the user blocks a site and when the extension starts up. No other browsing data (history, cookies, cache, passwords, other sites) is read or removed. |
 | Host permission `<all_urls>` | Chrome only lets a redirect rule act on sites the extension has host access to, and users can block any website they choose, so access can't be limited to a fixed list. It is used only to show the extension's countdown page in place of sites on the user's block list, to reload tabs already open on a site when the user blocks it, and to see which site the current tab is on when the user asks to block it (from the popup, which the keyboard shortcut opens, or the right-click menu). The extension has no content scripts, never reads or changes page content, and makes no network requests. |
 
 **Remote code:** No, I am not using remote code.
@@ -193,8 +194,8 @@ all three.
 
 Most reviews finish within a few days. Broad host access, a new developer
 account and a new extension all draw a closer look, so the first review may
-take longer. If a reviewer asks about `<all_urls>`, answer with the
-justification above.
+take longer. If a reviewer asks about `<all_urls>` or `browsingData`, answer
+with the justifications above.
 
 ## 6. Microsoft Edge Add-ons (free, do it the same week)
 

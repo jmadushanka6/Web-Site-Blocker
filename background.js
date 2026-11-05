@@ -1,10 +1,11 @@
 // background.js — service worker entry point.
 // Single Responsibility: wire chrome events to siteActions. No business
 // logic lives here — see lockModel.js (rules), storage.js (persistence),
-// rules.js (enforcement), siteActions.js (the actual operations),
-// contextMenu.js (the right-click menu) and offTracker.js (noticing that
-// the extension was switched off). This file is only the adapter between
-// chrome's event system and that service layer.
+// rules.js (enforcement), siteWorkers.js (removing blocked sites' service
+// workers), siteActions.js (the actual operations), contextMenu.js (the
+// right-click menu) and offTracker.js (noticing that the extension was
+// switched off). This file is only the adapter between chrome's event
+// system and that service layer.
 //
 // Open/Closed: adding a new message type means adding one line to the
 // `handlers` table below — the dispatcher itself never needs to change.
@@ -21,6 +22,7 @@ import {
   recordAttempt,
   refreshBadge,
   dismissOffNotice,
+  clearBlockedSiteWorkers,
 } from "./siteActions.js";
 import { syncRules } from "./rules.js";
 import { createMenus, durationForMenuItem } from "./contextMenu.js";
@@ -78,9 +80,12 @@ async function ensureHeartbeat() {
 // Chrome's rules match what's in storage. The right-click menu, the
 // heartbeat and the toolbar badge are put back in place at the same moments
 // for the same reason — and again when the extension comes back from being
-// switched off.
+// switched off. Blocked sites' own service workers are removed then too,
+// since a site may have installed one while the extension was off (or
+// before an update that started removing them).
 function setup() {
   resync();
+  clearBlockedSiteWorkers().catch(logFailure("Couldn't remove blocked sites' service workers:"));
   createMenus().catch(logFailure("Couldn't create the right-click menu:"));
   ensureHeartbeat().catch(logFailure("Couldn't schedule the heartbeat:"));
   refreshBadge().catch(logFailure("Couldn't update the toolbar badge:"));

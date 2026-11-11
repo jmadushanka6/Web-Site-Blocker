@@ -161,7 +161,7 @@
     "message": "Verlängern"
   },
   "extendOption": {
-    "message": "$P1$ ab jetzt · $P2$",
+    "message": "$P1$ · bis $P2$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -172,7 +172,7 @@
     }
   },
   "restartTimer": {
-    "message": "Timer neu starten"
+    "message": "Neu starten"
   },
   "ariaExtend": {
     "message": "$P1$ verlängern",
@@ -556,7 +556,7 @@
     "message": "Wähle eine gültige Dauer."
   },
   "errTimerEnded": {
-    "message": "Der Timer dieser Website ist abgelaufen – nutze „Timer neu starten“."
+    "message": "Der Timer dieser Website ist abgelaufen – nutze „Neu starten“."
   },
   "errShorter": {
     "message": "Wähle eine längere Option: Ein Timer lässt sich nur verlängern, nie verkürzen."

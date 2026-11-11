@@ -73,8 +73,8 @@ test("time left and durations, in English", () => {
 test("German reads naturally", () => {
   const de = makeGetMessage(loadMessages("de"));
   assert.equal(de("badgeRemovableIn", ["1 Tg. 2 Std."]), "Entfernbar in 1 Tg. 2 Std.");
-  assert.equal(de("extendOption", ["7 Tage", "Mo., 9. Nov."]), "7 Tage ab jetzt · Mo., 9. Nov.");
-  assert.equal(de("restartTimer"), "Timer neu starten");
+  assert.equal(de("extendOption", ["7 Tage", "Mo., 9. Nov."]), "7 Tage · bis Mo., 9. Nov.");
+  assert.equal(de("restartTimer"), "Neu starten");
   assert.equal(de("badgeEnded"), "Timer abgelaufen");
   assert.equal(de("offTitleN", ["3"]), "Der Blocker war 3-mal ausgeschaltet");
   assert.equal(de("quickBlock", ["x.com"]), "x.com sperren");

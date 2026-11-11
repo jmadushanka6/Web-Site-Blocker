@@ -63,10 +63,22 @@ async function shoot(lang) {
       const blocklist = [
         { domain: "reddit.com", addedAt: now - 20 * HOUR, lockUntil: now + 28 * HOUR + 5 * 60000 },
         { domain: "x.com", addedAt: now - 2 * DAY, lockUntil: now + 27 * DAY + 19 * HOUR },
-        { domain: "youtube.com", addedAt: now - DAY, lockUntil: now + 5 * DAY + 22 * HOUR },
+        // Blocked 10 days ago for 7 days, then extended by another 7.
+        { domain: "youtube.com", addedAt: now - 10 * DAY, lockUntil: now + 3 * DAY + 22 * HOUR },
         { domain: "instagram.com", addedAt: now - 3 * DAY, lockUntil: now - HOUR },
       ];
-      await chrome.storage.local.set({ blocklist });
+      // youtube.com's tries since the block began, tailing off day by day,
+      // so the blocked page shows its daily chart. Opening that page for
+      // the shot adds one more today.
+      const perDay = [11, 9, 10, 7, 6, 6, 4, 5, 3, 2, 1]; // 10 days ago → today
+      const days = {};
+      perDay.forEach((count, i) => {
+        const d = new Date(now - (perDay.length - 1 - i) * DAY);
+        const p = (x) => String(x).padStart(2, "0");
+        days[`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`] = count;
+      });
+      const total = perDay.reduce((a, b) => a + b, 0);
+      await chrome.storage.local.set({ blocklist, attempts: { "youtube.com": { since: now - 10 * DAY, total, days } } });
     },
     { now, HOUR, DAY }
   );
@@ -109,6 +121,7 @@ async function shoot(lang) {
   const blocked = await context.newPage();
   await blocked.goto(`chrome-extension://${id}/blocked.html?d=youtube.com`);
   await blocked.waitForFunction(() => /\d/.test(document.querySelector("#statusTime").textContent));
+  await blocked.waitForSelector("#chart:not([hidden])");
   await blocked.waitForTimeout(1200); // let the progress bar's transition finish
   await blocked.screenshot({ path: path.join(outDir, "2-blocked-page.png") });
 

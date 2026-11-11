@@ -768,7 +768,7 @@ async function germanSection() {
   const badge = (await popup.textContent("li.item .badge")).trim();
   check("countdown in German", /^Entfernbar in 7 Tg\. 0 Std\.$/.test(badge), badge);
   const choiceDe = (await popup.textContent("li.item select.dur option")).trim();
-  check("extend choice in German", /^(7|30) Tage ab jetzt · \S+, \d{1,2}\. \S+$/.test(choiceDe), choiceDe);
+  check("extend choice in German", /^(7|30) Tage · bis \S+, \d{1,2}\. \S+$/.test(choiceDe), choiceDe);
   check("count in German", (await popup.textContent("#count")) === "1 Website");
   check("extend button in German", (await popup.textContent("li.item .btn-action")) === "Verlängern");
   const err = await addSite(popup, "example.org", DAY);
